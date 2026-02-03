@@ -1,8 +1,10 @@
+// RecipientList.js
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // navigateをインポート
 
-// 宛先選択画面のコンポーネント
 function RecipientList() {
   const [friends, setFriends] = useState([]);
+  const navigate = useNavigate(); // navigateを使えるようにする
 
   useEffect(() => {
     fetch('http://localhost:3010/friends')
@@ -19,7 +21,17 @@ function RecipientList() {
 
       <div>
         {friends.map(friend => (
-          <div key={friend.id} style={{ display: 'flex', alignItems: 'center', padding: '15px', borderBottom: '1px solid #eee' }}>
+          <div 
+            key={friend.id} 
+            onClick={() => navigate('/step4', { state: { selectedUser: friend } })} // ここを追加！
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              padding: '15px', 
+              borderBottom: '1px solid #eee', 
+              cursor: 'pointer' // マウスを乗せたときに指の形にする
+            }}
+          >
             <img 
               src={friend.icon}
               alt={friend.name}
@@ -33,5 +45,4 @@ function RecipientList() {
   );
 }
 
-// 他のファイル（App.jsなど）で使えるように書き出す
 export default RecipientList;

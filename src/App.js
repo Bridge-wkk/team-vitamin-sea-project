@@ -1,7 +1,9 @@
 import React from "react";
 import "./App.css";
+import { useNavigate } from "react-router-dom";
 
 export default function App() {
+  const navigate = useNavigate();
   return (
     <div className="page">
       <div className="screen">
@@ -32,7 +34,7 @@ export default function App() {
         </button>
 
         {/* 送金ボタン */}
-        <button className="actionButton" type="button">
+        <button onClick={() => navigate("/recipientlist")} className="actionButton" type="button">
           <img
             className="actionIcon"
             src="/images/wallet.png"

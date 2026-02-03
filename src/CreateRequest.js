@@ -4,7 +4,9 @@ import "./App.css";           // ★重要：App.jsと同じレイアウトを�
 import "./CreateRequest.css"; // この画面専用のスタイル
 import { useNavigate } from "react-router-dom";
 
+
 const CreateRequest = () => {
+  const navigate = useNavigate();
 
   const handleCreate = () => {
     console.log("リンク作成ボタンが押されました");

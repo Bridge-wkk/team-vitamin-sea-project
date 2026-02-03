@@ -1,58 +1,35 @@
-import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./RequestComplete.css";
-import { useNavigate } from "react-router-dom";
 
-export default function RequestComplete({
-  requestUrl = "https://example.com/request/abcd1234", // 仮置き
-  onCopy,
-  onBackToTop,
-}) {
+const RequestComplete = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const link = location.state?.link;
+
   return (
     <div className="rcPage">
       <div className="rcScreen">
-        <div className="rcTitle">請求リンクが作成されました</div>
+        <p className="rcTitle">請求リンクを作成しました</p>
 
-        {/* リンク表示エリア */}
         <div className="rcLinkBox">
-          <a
-            className="rcLink"
-            href={requestUrl}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {requestUrl}
+          <a className="rcLink" href={link}>
+            {window.location.origin}{link}
           </a>
         </div>
 
-        {/* ボタン */}
         <button
           className="rcCopyButton"
-          type="button"
-          onClick={() => {
-            // 仮：押したらコピー関数を呼ぶ（未指定なら簡易コピー）
-            if (onCopy) return onCopy(requestUrl);
-
-            // ここだけ「仮でも動く」ようにしておく
-            if (navigator.clipboard?.writeText) {
-              navigator.clipboard.writeText(requestUrl);
-              alert("リンクをコピーしました");
-            } else {
-              alert("この環境では自動コピーできません");
-            }
-          }}
+          onClick={() => navigator.clipboard.writeText(window.location.origin + link)}
         >
           リンクをコピー
         </button>
 
-        <button
-          className="rcBackButton"
-          type="button"
-          onClick={() => navigate("/")}
-        >
-          トップ画面に戻る
+        <button className="rcBackButton" onClick={() => navigate("/")}>
+          トップに戻る
         </button>
       </div>
     </div>
   );
-}
+};
+
+export default RequestComplete;

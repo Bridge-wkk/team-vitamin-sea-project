@@ -6,7 +6,7 @@ import App from "./App";
 import Login from "./Login";
 import RecipientList from "./RecipientList";
 import Step4Screen from "./STEP4";
-import Step6Screen from './step6';
+import Step6Screen from "./step6";
 import CreateRequest from "./CreateRequest";
 import RequestComplete from "./RequestComplete";
 import PayRequest from "./PayRequest";
@@ -29,6 +29,8 @@ function Routers() {
           } 
         />
 
+        <Route path="/createrequest" element={<CreateRequest user={loginUser} />} />
+
         {/* 送金STEP4：ここでも user情報を渡すように設定（★重要） */}
         <Route 
           path="/step4" 
@@ -41,7 +43,10 @@ function Routers() {
         <Route path="/createrequest" element={<CreateRequest user={loginUser} />} />
 
         {/* その他の画面 */}
-        <Route path="/recipientlist" element={<RecipientList />} />
+        <Route
+          path="/recipientlist"
+          element={<RecipientList loginUser={loginUser} />}
+        />
         <Route path="/step6" element={<Step6Screen />} />
         <Route path="/requestcomplete" element={<RequestComplete />} />
         <Route path="/payrequest" element={<PayRequest />} />

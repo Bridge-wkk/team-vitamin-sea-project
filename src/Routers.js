@@ -5,6 +5,7 @@ import Step4Screen from "./STEP4";
 import Step6Screen from './step6';
 import CreateRequest from "./CreateRequest";
 import RequestComplete from "./RequestComplete";
+import PayRequest from "./PayRequest";
 
 function Routers() {
   return (
@@ -16,6 +17,7 @@ function Routers() {
         <Route path="/step6" element={<Step6Screen />} />
         <Route path="/createrequest" element={<CreateRequest />} />
         <Route path="/requestcomplete" element={<RequestComplete />} />
+        <Route path="/payrequest" element={<PayRequest />} />
       </Routes>
     </BrowserRouter>
   );

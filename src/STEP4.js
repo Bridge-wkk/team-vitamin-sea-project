@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-function Step4Screen({ user }) { // Routersから user を受け取る
+function Step4Screen({ loginUser }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { selectedUser } = location.state || {}; // 前画面で選んだ相手
@@ -10,13 +10,26 @@ function Step4Screen({ user }) { // Routersから user を受け取る
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
 
+  // 起動時に現在の自分の情報を取得
+  useEffect(() => {
+    useEffect(() => {
+  if (!loginUser) return;
+
+  fetch(`http://localhost:3010/friends/${loginUser.id}`)
+    .then(res => res.json())
+    .then(data => setMyBalance(data.balance))
+    .catch(err => console.error("データ取得エラー:", err));
+  }, [loginUser]);
+
+  // 送金ボタンを押した時の処理
   const handleTransfer = () => {
     const sendAmount = Number(amount);
     const newBalance = user.balance - sendAmount; // 自分の新しい残高を計算
 
-    // 自分のID(user.id)の残高をDBで更新
-    fetch(`http://localhost:3010/friends/${user.id}`, {
-      method: 'PATCH',
+    // 1. DB(db.json)の残高を更新する
+    fetch(`http://localhost:3010/friends/${loginUser.id}`, {
+      method: 'PATCH', // 指定した項目（balance）だけを上書き
+
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ balance: newBalance }),
     })

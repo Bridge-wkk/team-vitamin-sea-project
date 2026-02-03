@@ -26,7 +26,8 @@ function Step4Screen() {
   }, []);
 
   // 4. バリデーション：金額が未入力、または0以下の場合はボタンを非活性化
-  const isButtonDisabled = !amount || Number(amount) <= 0;
+  const isButtonDisabled = !amount || Number(amount) <= 0 || Number(amount) > myBalance;
+  
 
   // ガード：データがない場合は戻る
   if (!selectedUser) {

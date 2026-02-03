@@ -3,17 +3,19 @@ import { useNavigate } from "react-router-dom";
 import "./App.css";
 import "./CreateRequest.css";
 
-const CreateRequest = () => {
+// 1. 引数で user を受け取るように変更
+const CreateRequest = ({ user }) => {
   const navigate = useNavigate();
 
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
 
   const handleCreate = () => {
-    // ★ 仮の請求者名（あとで loginUser.name に置き換える）
-    const requester = "山田 太郎";
+    // 2. loginUser ではなく、受け取った props の user を使用する
+    // 安全のため、userが存在しない場合は "ゲスト" とするなどの対策を入れています
+    const requester = user ? user.name : "ゲスト";
 
-    // ★ URLに埋め込む
+    // URLに埋め込む
     const link = `/payrequest?from=${encodeURIComponent(requester)}&amount=${amount}&message=${encodeURIComponent(message)}`;
 
     navigate("/requestcomplete", {

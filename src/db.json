@@ -1,5 +1,13 @@
-{						
-    "hello": [						
-      {  "word": "Hello json-server" }						
-    ]						
-}						
+{
+  "user": {
+    "name": "サンプル 氏名",
+    "accountNumber": "0000000",
+    "balance": 50000
+  },
+  "friends": [
+    { "id": 1, "name": "サンプル 氏名A", "icon": "/images/human1.png" },
+    { "id": 2, "name": "サンプル 氏名B", "icon": "/images/human2.png" },
+    { "id": 3, "name": "サンプル 氏名C", "icon": "/images/human3.png" },
+    { "id": 4, "name": "サンプル 氏名D", "icon": "/images/human4.png" }
+  ]
+}

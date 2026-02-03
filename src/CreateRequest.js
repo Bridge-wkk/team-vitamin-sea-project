@@ -2,6 +2,7 @@
 import React from "react";
 import "./App.css";           // ★重要：App.jsと同じレイアウトを使うため読み込む
 import "./CreateRequest.css"; // この画面専用のスタイル
+import { useNavigate } from "react-router-dom";
 
 const CreateRequest = () => {
 
@@ -44,7 +45,7 @@ const CreateRequest = () => {
         </div>
 
         {/* 作成ボタン */}
-        <button className="create-link-btn" onClick={handleCreate}>
+        <button onClick={() => navigate("/requestcomplete")} className="create-link-btn" >
           <span className="actionText">リンクを作成</span>
         </button>
 

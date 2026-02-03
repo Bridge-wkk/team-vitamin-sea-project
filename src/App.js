@@ -44,7 +44,7 @@ export default function App() {
         </button>
 
         {/* ★ 請求ボタン（追加） */}
-        <button className="actionButton" type="button">
+        <button onClick={() => navigate("/createrequest")} className="actionButton" type="button">
           <img
             className="actionIcon"
             src="/images/approval.png"

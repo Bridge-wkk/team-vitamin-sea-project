@@ -1,38 +1,138 @@
-.App {
-  text-align: center;
+* {
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP",
+    "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  background: #ffffff;
+  color: #111;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+/* 画面を中央寄せ（スマホ枠は作らない） */
+.page {
   min-height: 100vh;
+  display: grid;
+  place-items: start center;
+  padding: 40px 16px;
+}
+
+/* “スマホ画面の中身” */
+.screen {
+  width: min(360px, 100%);
+  padding: 20px 12px;
+  background: #fff;
+}
+
+/* 上部：アイコン + 氏名（添付の位置感に合わせる） */
+.header {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  gap: 14px;
+  margin-top: 10px;
 }
 
-.App-link {
-  color: #61dafb;
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: #d7d58e; /* 添付の丸背景に寄せる */
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex: 0 0 auto;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.avatar img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.name {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* 口座番号 / 残高表示 */
+.subRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding: 0 2px;
+}
+
+.subLeft {
+  font-size: 12px;
+  color: #333;
+}
+
+.subRight {
+  font-size: 12px;
+  color: #333;
+  background: transparent;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+/* 残高カード */
+.balanceCard {
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px 14px;
+  border-radius: 10px;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.balanceAmount {
+  font-size: 18px;
+  font-weight: 600;
+  color: #444;
+}
+
+.chevron {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+}
+
+/* 送金ボタン（添付の位置：残高のすぐ下） */
+.sendButton {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  cursor: pointer;
+}
+
+.sendIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.sendText {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111;
+}
+
+/* ちょい気持ちいい */
+.balanceCard:hover,
+.sendButton:hover {
+  background: #f7f7f7;
 }

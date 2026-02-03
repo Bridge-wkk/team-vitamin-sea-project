@@ -1,40 +1,54 @@
-// src/step4.js
-import React, { useState } from 'react';
+// src/STEP4.js 
+import React, { useState } from 'react'; 
 import { useLocation, useNavigate } from 'react-router-dom';
 
-function Step4Screen({ user }) { // Routersから user を受け取る
+function Step4Screen({ loginUser }) { 
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedUser } = location.state || {}; // 前画面で選んだ相手
+  const { selectedUser } = location.state || {}; 
 
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
 
-  const handleTransfer = () => {
+  const handleTransfer = async () => {
     const sendAmount = Number(amount);
-    const newBalance = user.balance - sendAmount; // 自分の新しい残高を計算
+    
+    // 計算時に数値であることを保証
+    const myNewBalance = Number(loginUser.balance) - sendAmount; 
+    const friendNewBalance = (Number(selectedUser.balance) || 0) + sendAmount;
 
-    // 自分のID(user.id)の残高をDBで更新
-    fetch(`http://localhost:3010/friends/${user.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ balance: newBalance }),
-    })
-    .then(res => {
-      if (res.ok) {
-        // 成功したら完了画面へ
-        navigate('/step6', { state: { selectedUser, amount: sendAmount, message } });
-      } else {
-        alert("送金処理に失敗しました。");
-      }
-    })
-    .catch(err => console.error("通信エラー:", err));
+    try {
+      // 両方の残高をDBで更新
+      await fetch(`http://localhost:3010/friends/${loginUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ balance: myNewBalance }),
+      });
+
+      await fetch(`http://localhost:3010/friends/${selectedUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ balance: friendNewBalance }),
+      });
+
+      // 完了画面へ移動し、メッセージを渡す
+      navigate('/step6', { state: { selectedUser, amount: sendAmount, message } });
+    } catch (err) {
+      console.error("送金エラー:", err);
+      alert("送金に失敗しました。");
+    }
   };
 
-  // 入力金額が 0以下 または 残高不足 の場合にボタンを無効化
-  const isButtonDisabled = !amount || Number(amount) <= 0 || Number(amount) > user?.balance;
+  const isButtonDisabled = !amount || Number(amount) <= 0 || Number(amount) > (loginUser?.balance || 0);
 
-  if (!selectedUser || !user) return <div style={{ padding: '20px' }}>データが不足しています。</div>;
+  if (!selectedUser || !loginUser) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <p>データが不足しています。</p>
+        <button onClick={() => navigate("/recipientlist")}>戻る</button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '20px', textAlign: 'center', fontFamily: 'sans-serif' }}>
@@ -49,23 +63,52 @@ function Step4Screen({ user }) { // Routersから user を受け取る
         
         <div style={{ margin: '20px auto', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '8px', width: '80%' }}>
           <p style={{ fontSize: '12px', margin: '0', color: '#888' }}>送金上限額（自身の預金金額）</p>
-          <p style={{ fontSize: '20px', fontWeight: 'bold', margin: '5px 0' }}>{user.balance.toLocaleString()}円</p>
+          <p style={{ fontSize: '20px', fontWeight: 'bold', margin: '5px 0' }}>
+            {loginUser.balance.toLocaleString()}円
+          </p>
         </div>
 
         <div style={{ margin: '30px 0' }}>
           <p style={{ fontSize: '14px', fontWeight: 'bold' }}>送金金額を入力してください</p>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}>
-            <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="金額" style={{ fontSize: '24px', padding: '10px', width: '180px', textAlign: 'right', border: '1px solid #ccc', borderRadius: '5px' }} />
+            <input 
+              type="number" 
+              value={amount} 
+              onChange={(e) => setAmount(e.target.value)} 
+              placeholder="金額" 
+              style={{ fontSize: '24px', padding: '10px', width: '180px', textAlign: 'right', border: '1px solid #ccc', borderRadius: '5px' }} 
+            />
             <span style={{ fontSize: '20px', marginLeft: '10px' }}>円</span>
           </div>
         </div>
 
+        {/* ★追加したメッセージ入力欄 */}
         <div style={{ margin: '20px 0' }}>
           <p style={{ fontSize: '14px', fontWeight: 'bold' }}>メッセージ（任意）</p>
-          <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="いつもありがとう！" style={{ width: '80%', padding: '12px', marginTop: '10px', borderRadius: '5px', border: '1px solid #ccc' }} />
+          <input 
+            type="text" 
+            value={message} 
+            onChange={(e) => setMessage(e.target.value)} 
+            placeholder="いつもありがとう！" 
+            style={{ width: '80%', padding: '12px', marginTop: '10px', borderRadius: '5px', border: '1px solid #ccc' }} 
+          />
         </div>
 
-        <button onClick={handleTransfer} disabled={isButtonDisabled} style={{ marginTop: '20px', padding: '15px 80px', backgroundColor: isButtonDisabled ? '#ccc' : '#D11C1C', color: '#fff', border: 'none', borderRadius: '5px', fontWeight: 'bold', fontSize: '18px' }}>
+        <button 
+          onClick={handleTransfer} 
+          disabled={isButtonDisabled} 
+          style={{ 
+            marginTop: '20px', 
+            padding: '15px 80px', 
+            backgroundColor: isButtonDisabled ? '#ccc' : '#D11C1C', 
+            color: '#fff', 
+            border: 'none', 
+            borderRadius: '5px', 
+            fontWeight: 'bold', 
+            fontSize: '18px',
+            cursor: isButtonDisabled ? 'not-allowed' : 'pointer'
+          }}
+        >
           送金
         </button>
       </div>

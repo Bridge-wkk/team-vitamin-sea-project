@@ -1,68 +1,56 @@
-import React, { useState, useEffect } from "react"; // ★ useState, useEffect を追加
+// src/App.js
+import React from "react";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
 
-export default function App({ user, onLogout }) {
+// ★ 引数を { loginUser } に統一
+export default function App({ loginUser }) { 
   const navigate = useNavigate();
+  const [currentBalance, setCurrentBalance] = React.useState(loginUser.balance);
 
-  // ★修正1：表示用のデータを管理する。初期値はログイン情報(user)にしておく
-  const [userData, setUserData] = useState(user);
-
-  // ★修正2：画面が表示されるたびに、サーバーから最新情報を取ってくる
-  useEffect(() => {
-    if (!user || !user.id) return;
-
-    // 最新の自分自身の情報を取得
-    fetch(`http://localhost:3010/friends/${user.id}`)
+  React.useEffect(() => {
+    // ログイン直後に最新の残高を取得し直す
+    fetch(`http://localhost:3010/friends/${loginUser.id}`)
       .then(res => res.json())
-      .then(data => {
-        console.log("App.js: 最新データを取得しました", data);
-        setUserData(data); // ★ここで最新情報に上書き！
-      })
-      .catch(err => console.error("データ取得エラー:", err));
-  }, [user]);
+      .then(data => setCurrentBalance(Number(data.balance)));
+  }, [loginUser.id]);
 
-  // ログイン情報がない場合のガード
-  if (!userData) return null;
+  // ★ データが届くまでの間、真っ白にならないようにガード
+  if (!loginUser) {
+    return (
+      <div className="page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <p>読み込み中...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
       <div className="screen">
+        {/* 上部：アイコン + 氏名 */}
         <div className="header">
           <div className="avatar">
-            {/* ★修正3：user ではなく userData を使う */}
-            <img src={userData.icon} alt="ユーザーアイコン" />
-          <div className="name">{userData.name}</div>
+            <img src={loginUser.icon} alt="ユーザーアイコン"/>
+          </div>
+          <div className="name">{loginUser.name}</div>
         </div>
 
-        {/* ★ ログアウトボタンをヘッダーの右側に追加 */}
-          <button 
-            onClick={onLogout} 
-            style={{ 
-              fontSize: '11px', 
-              padding: '4px 8px', 
-              backgroundColor: '#f0f0f0', 
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              color: '#666'
-            }}
-          >
-            ログアウト
-          </button>
-        </div>
+        {/* 口座番号 / 残高表示 */}
 
         <div className="subRow">
-          <div className="subLeft">口座番号：{userData.accountNumber}</div>
+          <div className="subLeft">口座番号：{loginUser.accountNumber}</div>
           <button className="subRight" type="button">残高表示</button>
         </div>
 
+        {/* 残高カード */}
         <button className="balanceCard" type="button">
-          {/* ★修正4：ここが一番重要！最新の残高(userData.balance)を表示 */}
-          <div className="balanceAmount">{userData.balance.toLocaleString()}円</div>
+          <div className="balanceAmount">
+            {currentBalance.toLocaleString()}円
+          </div>
           <img className="chevron" src="/images/chevron-right.png" alt="" />
         </button>
 
+        {/* 各種アクション */}
         <button onClick={() => navigate("/recipientlist")} className="actionButton" type="button">
           <img className="actionIcon" src="/images/wallet.png" alt="" />
           <span className="actionText">送金する</span>
@@ -71,6 +59,19 @@ export default function App({ user, onLogout }) {
         <button onClick={() => navigate("/createrequest")} className="actionButton" type="button">
           <img className="actionIcon" src="/images/approval.png" alt="" />
           <span className="actionText">請求する</span>
+        </button>
+
+        {/* 支払い通知（Step8） */}
+        <button 
+          onClick={() => navigate("/payrequest")} 
+          className="actionButton" 
+          style={{ backgroundColor: '#fff5f5', border: '1px solid #ffcccc', marginTop: '10px' }}
+          type="button"
+        >
+          <img className="actionIcon" src="/images/notification.png" alt="" />
+          <span className="actionText" style={{ color: '#D11C1C', fontWeight: 'bold' }}>
+            支払いリクエストが届いています
+          </span>
         </button>
       </div>
     </div>

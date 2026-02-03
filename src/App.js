@@ -21,13 +21,14 @@ export default function App({ loginUser }) {
       <div className="screen">
         {/* 上部：アイコン + 氏名 */}
         <div className="header">
-          <div className="avatar">
+          <div className="avata
             <img src={loginUser.icon} alt="ユーザーアイコン" />
           </div>
           <div className="name">{loginUser.name}</div>
         </div>
 
         {/* 口座番号 / 残高表示 */}
+
         <div className="subRow">
           <div className="subLeft">口座番号：{loginUser.accountNumber}</div>
           <button className="subRight" type="button">残高表示</button>

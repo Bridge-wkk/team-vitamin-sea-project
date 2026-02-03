@@ -47,7 +47,7 @@ function Routers() {
         <Route path="/step4" element={<Step4Screen />} />
         <Route path="/step6" element={<Step6Screen />} />
         <Route path="/requestcomplete" element={<RequestComplete />} />
-        <Route path="/payrequest" element={<PayRequest />} /
+        <Route path="/payrequest" element={<PayRequest />} />
       </Routes>
     </BrowserRouter>
   );

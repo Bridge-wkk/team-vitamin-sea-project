@@ -25,7 +25,8 @@ function Routers() {
         <Route 
           path="/" 
           element={
-            loginUser ? <App user={loginUser} /> : <Navigate to="/login" />
+            loginUser ? <App user={loginUser} onLogout={() => setLoginUser(null)} /> // ★onLogoutを追加
+      : <Navigate to="/login" />
           } 
         />
 

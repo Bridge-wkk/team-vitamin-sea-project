@@ -9,7 +9,7 @@ import Step4Screen from "./STEP4";
 import Step6Screen from './step6';
 import CreateRequest from "./CreateRequest";
 import RequestComplete from "./RequestComplete";
-// もし支払い画面(PayScreen)を作っていれば、ここに import PayScreen from "./PayScreen"; を追加
+import PayRequest from "./PayRequest";
 
 function Routers() {
   // ★ここで「誰がログインしているか」を一元管理します
@@ -47,7 +47,7 @@ function Routers() {
         <Route path="/step4" element={<Step4Screen />} />
         <Route path="/step6" element={<Step6Screen />} />
         <Route path="/requestcomplete" element={<RequestComplete />} />
-
+        <Route path="/payrequest" element={<PayRequest />} /
       </Routes>
     </BrowserRouter>
   );

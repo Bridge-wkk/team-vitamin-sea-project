@@ -1,29 +1,24 @@
-// src/STEP4.js
+// src/STEP4.js 
 import React, { useState } from 'react'; 
 import { useLocation, useNavigate } from 'react-router-dom';
 
-// 引数の名前を Routers.js と同じ「loginUser」にします
 function Step4Screen({ loginUser }) { 
   const location = useLocation();
   const navigate = useNavigate();
-  
-  // 前の画面（宛先リスト）から届いた相手の情報
   const { selectedUser } = location.state || {}; 
 
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
 
-  // 送金確定処理
   const handleTransfer = async () => {
     const sendAmount = Number(amount);
     
-    // 自分の最新残高から引く
-    const myNewBalance = loginUser.balance - sendAmount; 
-    // 相手の残高を増やす計算
-    const friendNewBalance = (selectedUser.balance || 0) + sendAmount;
+    // 計算時に数値であることを保証
+    const myNewBalance = Number(loginUser.balance) - sendAmount; 
+    const friendNewBalance = (Number(selectedUser.balance) || 0) + sendAmount;
 
     try {
-      // 自分と相手、両方の残高をDBで更新する
+      // 両方の残高をDBで更新
       await fetch(`http://localhost:3010/friends/${loginUser.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -36,7 +31,7 @@ function Step4Screen({ loginUser }) {
         body: JSON.stringify({ balance: friendNewBalance }),
       });
 
-      // 完了画面へ移動
+      // 完了画面へ移動し、メッセージを渡す
       navigate('/step6', { state: { selectedUser, amount: sendAmount, message } });
     } catch (err) {
       console.error("送金エラー:", err);
@@ -44,15 +39,13 @@ function Step4Screen({ loginUser }) {
     }
   };
 
-  // ★ 修正箇所：loginUser.balance を使って判定
   const isButtonDisabled = !amount || Number(amount) <= 0 || Number(amount) > (loginUser?.balance || 0);
 
-  // ★ 修正箇所：チェックする名前を loginUser に統一
   if (!selectedUser || !loginUser) {
     return (
       <div style={{ padding: '20px', textAlign: 'center' }}>
-        <p>読み込み中、またはデータが不足しています。</p>
-        <button onClick={() => navigate("/recipientlist")}>宛先一覧に戻る</button>
+        <p>データが不足しています。</p>
+        <button onClick={() => navigate("/recipientlist")}>戻る</button>
       </div>
     );
   }
@@ -87,6 +80,18 @@ function Step4Screen({ loginUser }) {
             />
             <span style={{ fontSize: '20px', marginLeft: '10px' }}>円</span>
           </div>
+        </div>
+
+        {/* ★追加したメッセージ入力欄 */}
+        <div style={{ margin: '20px 0' }}>
+          <p style={{ fontSize: '14px', fontWeight: 'bold' }}>メッセージ（任意）</p>
+          <input 
+            type="text" 
+            value={message} 
+            onChange={(e) => setMessage(e.target.value)} 
+            placeholder="いつもありがとう！" 
+            style={{ width: '80%', padding: '12px', marginTop: '10px', borderRadius: '5px', border: '1px solid #ccc' }} 
+          />
         </div>
 
         <button 

@@ -6,6 +6,14 @@ import { useNavigate } from "react-router-dom";
 // ★ 引数を { loginUser } に統一
 export default function App({ loginUser }) { 
   const navigate = useNavigate();
+  const [currentBalance, setCurrentBalance] = React.useState(loginUser.balance);
+
+  React.useEffect(() => {
+    // ログイン直後に最新の残高を取得し直す
+    fetch(`http://localhost:3010/friends/${loginUser.id}`)
+      .then(res => res.json())
+      .then(data => setCurrentBalance(Number(data.balance)));
+  }, [loginUser.id]);
 
   // ★ データが届くまでの間、真っ白にならないようにガード
   if (!loginUser) {
@@ -21,8 +29,8 @@ export default function App({ loginUser }) {
       <div className="screen">
         {/* 上部：アイコン + 氏名 */}
         <div className="header">
-          <div className="avata
-            <img src={loginUser.icon} alt="ユーザーアイコン" />
+          <div className="avatar">
+            <img src={loginUser.icon} alt="ユーザーアイコン"/>
           </div>
           <div className="name">{loginUser.name}</div>
         </div>
@@ -37,7 +45,7 @@ export default function App({ loginUser }) {
         {/* 残高カード */}
         <button className="balanceCard" type="button">
           <div className="balanceAmount">
-            {loginUser.balance ? loginUser.balance.toLocaleString() : 0}円
+            {currentBalance.toLocaleString()}円
           </div>
           <img className="chevron" src="/images/chevron-right.png" alt="" />
         </button>

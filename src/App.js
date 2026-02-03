@@ -1,33 +1,49 @@
-// src/App.js
-import React from "react";
+import React, { useState, useEffect } from "react"; // ★ useState, useEffect を追加
 import "./App.css";
 import { useNavigate } from "react-router-dom";
 
-export default function App({ user }) { // 引数で user を受け取る
+export default function App({ user }) {
   const navigate = useNavigate();
 
+  // ★修正1：表示用のデータを管理する。初期値はログイン情報(user)にしておく
+  const [userData, setUserData] = useState(user);
+
+  // ★修正2：画面が表示されるたびに、サーバーから最新情報を取ってくる
+  useEffect(() => {
+    if (!user || !user.id) return;
+
+    // 最新の自分自身の情報を取得
+    fetch(`http://localhost:3010/friends/${user.id}`)
+      .then(res => res.json())
+      .then(data => {
+        console.log("App.js: 最新データを取得しました", data);
+        setUserData(data); // ★ここで最新情報に上書き！
+      })
+      .catch(err => console.error("データ取得エラー:", err));
+  }, [user]);
+
   // ログイン情報がない場合のガード
-  if (!user) return null;
+  if (!userData) return null;
 
   return (
     <div className="page">
       <div className="screen">
         <div className="header">
           <div className="avatar">
-            {/* ログインユーザーのアイコンを動的に表示 */}
-            <img src={user.icon} alt="ユーザーアイコン" />
+            {/* ★修正3：user ではなく userData を使う */}
+            <img src={userData.icon} alt="ユーザーアイコン" />
           </div>
-          <div className="name">{user.name}</div>
+          <div className="name">{userData.name}</div>
         </div>
 
         <div className="subRow">
-          <div className="subLeft">口座番号：{user.accountNumber}</div>
+          <div className="subLeft">口座番号：{userData.accountNumber}</div>
           <button className="subRight" type="button">残高表示</button>
         </div>
 
         <button className="balanceCard" type="button">
-          {/* ログインユーザーの残高を表示 */}
-          <div className="balanceAmount">{user.balance.toLocaleString()}円</div>
+          {/* ★修正4：ここが一番重要！最新の残高(userData.balance)を表示 */}
+          <div className="balanceAmount">{userData.balance.toLocaleString()}円</div>
           <img className="chevron" src="/images/chevron-right.png" alt="" />
         </button>
 

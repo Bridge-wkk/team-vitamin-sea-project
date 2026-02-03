@@ -1,0 +1,94 @@
+/* src/CreateRequest.css */
+
+/* タイトル（App.jsのヘッダー周りと雰囲気を合わせる） */
+.screen-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #111;
+  margin-top: 10px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+/* 入力エリアのまとまり */
+.form-group {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+/* ラベル */
+.input-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+/* 入力ボックス */
+.text-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: #e85a5a;
+  background-color: #fff;
+}
+
+/* 単位（円）の表示 */
+.currency-unit {
+  float: right;
+  margin-top: -32px;
+  margin-right: 12px;
+  color: #999;
+  font-weight: bold;
+  pointer-events: none; /* クリックの邪魔にならないように */
+}
+
+/* リンクを作成ボタン */
+.create-link-btn {
+  width: 100%;
+  margin-top: 30px;
+  padding: 14px;
+  border-radius: 10px; /* App.jsのボタンに合わせて少し角丸を調整 */
+  border: none;
+  background-color: #e85a5a;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  
+  /* アイコンと文字の位置調整 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.create-link-btn:hover {
+  opacity: 0.9;
+}
+
+/* 戻るボタン */
+.back-btn {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.back-btn:hover {
+  text-decoration: underline;
+}

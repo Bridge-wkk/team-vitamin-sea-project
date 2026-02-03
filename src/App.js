@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react"; // ★ useState, useEffect �
 import "./App.css";
 import { useNavigate } from "react-router-dom";
 
-export default function App({ user }) {
+export default function App({ user, onLogout }) {
   const navigate = useNavigate();
 
   // ★修正1：表示用のデータを管理する。初期値はログイン情報(user)にしておく
@@ -32,8 +32,24 @@ export default function App({ user }) {
           <div className="avatar">
             {/* ★修正3：user ではなく userData を使う */}
             <img src={userData.icon} alt="ユーザーアイコン" />
-          </div>
           <div className="name">{userData.name}</div>
+        </div>
+
+        {/* ★ ログアウトボタンをヘッダーの右側に追加 */}
+          <button 
+            onClick={onLogout} 
+            style={{ 
+              fontSize: '11px', 
+              padding: '4px 8px', 
+              backgroundColor: '#f0f0f0', 
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              color: '#666'
+            }}
+          >
+            ログアウト
+          </button>
         </div>
 
         <div className="subRow">

@@ -1,7 +1,7 @@
 {
   "friends": [
     {
-      "id": 1,
+      "id": "1",
       "name": "サンプル 氏名A",
       "accountNumber": "1111111",
       "balance": 30000,
@@ -9,7 +9,7 @@
       "icon": "/images/human1.png"
     },
     {
-      "id": 2,
+      "id": "2",
       "name": "サンプル 氏名B",
       "accountNumber": "2222222",
       "balance": 45000,
@@ -17,7 +17,7 @@
       "icon": "/images/human2.png"
     },
     {
-      "id": 3,
+      "id": "3",
       "name": "サンプル 氏名C",
       "accountNumber": "3333333",
       "balance": 20000,
@@ -25,7 +25,7 @@
       "icon": "/images/human3.png"
     },
     {
-      "id": 4,
+      "id": "4",
       "name": "サンプル 氏名D",
       "accountNumber": "4444444",
       "balance": 60000,
@@ -33,7 +33,7 @@
       "icon": "/images/human4.png"
     },
      {
-      "id": 5,
+      "id": "5",
       "name": "サンプル 氏名E",
       "accountNumber": "5555555",
       "balance": 60000,
@@ -41,7 +41,7 @@
       "icon": "/images/human5.png"
     },
     {
-      "id": 6,
+      "id": "6",
       "name": "サンプル 氏名F",
       "accountNumber": "6666666",
       "balance": 60000,

@@ -52,7 +52,7 @@ const CreateRequest = () => {
         </button>
 
         {/* 戻るボタン */}
-        <button className="back-btn" onClick={handleBack}>
+        <button className="back-btn" onClick={() => navigate("/")}>
           トップ画面に戻る
         </button>
 

@@ -15,9 +15,41 @@ function RecipientList() {
 
   return (
     <div style={{ backgroundColor: '#fff', minHeight: '100vh' }}>
-      <div style={{ padding: '15px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
-        <h2 style={{ fontSize: '18px', margin: 0 }}>送金相手を選択</h2>
-      </div>
+        <div style={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      padding: '10px 15px', 
+      borderBottom: '1px solid #ddd',
+      position: 'relative', // タイトルを中央にするための基準
+      height: '50px'        // 高さを固定すると安定します
+    }}>
+      {/* 戻るボタン：左端に配置 */}
+      <button 
+        onClick={() => navigate("/")} 
+        style={{ 
+          background: 'none',
+          border: 'none',
+          fontSize: '16px',
+          cursor: 'pointer',
+          zIndex: 1 // タイトルの上に持ってくる
+        }}
+      >
+        ＜ 戻る
+      </button>
+
+      {/* タイトル：画面の真ん中に配置 */}
+      <h2 style={{ 
+        fontSize: '18px', 
+        margin: 0,
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        textAlign: 'center',
+        pointerEvents: 'none' // ボタンのクリックを邪魔しない設定
+      }}>
+        送金相手を選択
+      </h2>
+    </div>
 
       <div>
         {friends.map(friend => (

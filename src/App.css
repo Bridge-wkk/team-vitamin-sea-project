@@ -10,7 +10,7 @@ body {
   color: #111;
 }
 
-/* 画面を中央寄せ（スマホ枠は作らない） */
+/* 画面を中央寄せ */
 .page {
   min-height: 100vh;
   display: grid;
@@ -18,14 +18,14 @@ body {
   padding: 40px 16px;
 }
 
-/* “スマホ画面の中身” */
+/* スマホ画面の中身 */
 .screen {
   width: min(360px, 100%);
   padding: 20px 12px;
   background: #fff;
 }
 
-/* 上部：アイコン + 氏名（添付の位置感に合わせる） */
+/* 上部 */
 .header {
   display: flex;
   align-items: center;
@@ -37,17 +37,15 @@ body {
   width: 64px;
   height: 64px;
   border-radius: 999px;
-  background: #d7d58e; /* 添付の丸背景に寄せる */
+  background: #d7d58e;
   display: grid;
   place-items: center;
   overflow: hidden;
-  flex: 0 0 auto;
 }
 
 .avatar img {
   width: 56px;
   height: 56px;
-  object-fit: contain;
 }
 
 .name {
@@ -55,13 +53,11 @@ body {
   font-weight: 600;
 }
 
-/* 口座番号 / 残高表示 */
+/* 口座番号行 */
 .subRow {
   display: flex;
-  align-items: center;
   justify-content: space-between;
   margin-top: 14px;
-  padding: 0 2px;
 }
 
 .subLeft {
@@ -71,10 +67,8 @@ body {
 
 .subRight {
   font-size: 12px;
-  color: #333;
-  background: transparent;
+  background: none;
   border: none;
-  padding: 6px 8px;
   cursor: pointer;
 }
 
@@ -82,30 +76,28 @@ body {
 .balanceCard {
   width: 100%;
   margin-top: 14px;
-  padding: 14px 14px;
+  padding: 14px;
   border-radius: 10px;
   border: 1px solid #e6e6e6;
   background: #fff;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   cursor: pointer;
 }
 
 .balanceAmount {
   font-size: 18px;
   font-weight: 600;
-  color: #444;
 }
 
 .chevron {
   width: 18px;
-  height: 18px;
   opacity: 0.7;
 }
 
-/* 送金ボタン（添付の位置：残高のすぐ下） */
-.sendButton {
+/* 共通アクションボタン（送金・請求） */
+.actionButton {
   width: 100%;
   margin-top: 12px;
   padding: 12px 14px;
@@ -120,19 +112,18 @@ body {
   cursor: pointer;
 }
 
-.sendIcon {
+.actionIcon {
   width: 20px;
   height: 20px;
 }
 
-.sendText {
+.actionText {
   font-size: 14px;
   font-weight: 500;
-  color: #111;
 }
 
-/* ちょい気持ちいい */
+/* hover */
 .balanceCard:hover,
-.sendButton:hover {
+.actionButton:hover {
   background: #f7f7f7;
 }

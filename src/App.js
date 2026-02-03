@@ -10,10 +10,8 @@ export default function App() {
         {/* 上：アイコン + 氏名 */}
         <div className="header">
           <div className="avatar">
-            {/* public/images 配下は /images/〜 で参照 */}
             <img src="/images/human1.png" alt="ユーザーアイコン" />
           </div>
-
           <div className="name">サンプル 氏名</div>
         </div>
 
@@ -28,13 +26,31 @@ export default function App() {
         {/* 残高カード */}
         <button className="balanceCard" type="button">
           <div className="balanceAmount">50,000円</div>
-          <img className="chevron" src="/images/chevron-right.png" alt="" />
+          <img
+            className="chevron"
+            src="/images/chevron-right.png"
+            alt=""
+          />
         </button>
 
-        {/* 送金ボタン（残高の下） */}
-        <button onClick={() => navigate("/recipientlist")} className="sendButton" type="button">
-          <img className="sendIcon" src="/images/wallet.png" alt="" />
-          <span className="sendText">送金する</span>
+        {/* 送金ボタン */}
+        <button onClick={() => navigate("/recipientlist")} className="actionButton" type="button">
+          <img
+            className="actionIcon"
+            src="/images/wallet.png"
+            alt=""
+          />
+          <span className="actionText">送金する</span>
+        </button>
+
+        {/* ★ 請求ボタン（追加） */}
+        <button className="actionButton" type="button">
+          <img
+            className="actionIcon"
+            src="/images/approval.png"
+            alt=""
+          />
+          <span className="actionText">請求する</span>
         </button>
       </div>
     </div>

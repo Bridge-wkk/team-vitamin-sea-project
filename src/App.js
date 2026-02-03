@@ -43,11 +43,7 @@ export default function App() {
 
         {/* ★ 請求ボタン（追加） */}
         <button className="actionButton" type="button">
-          <img
-            className="actionIcon"
-            src="/images/approval.png"
-            alt=""
-          />
+          <span style={{ fontSize: "24px", lineHeight: "1" }}>🤲</span>
           <span className="actionText">請求する</span>
         </button>
       </div>

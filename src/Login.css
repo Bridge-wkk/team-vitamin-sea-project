@@ -1,0 +1,19 @@
+.login-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: none;
+  
+    background: #1976d2;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+  
+    cursor: pointer;
+  }
+  
+  .login-btn:hover {
+    filter: brightness(0.95);
+  }
+  

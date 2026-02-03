@@ -44,9 +44,7 @@ function Routers() {
         <Route path="/createrequest" element={<CreateRequest user={loginUser} />} />
 
         {/* その他の画面 */}
-        <Route
-          path="/recipientlist"
-          element={<RecipientList loginUser={loginUser} />}
+        <Route path="/recipientlist" lement={<RecipientList loginUser={loginUser} />}
         />
         <Route path="/step6" element={<Step6Screen />} />
         <Route path="/requestcomplete" element={<RequestComplete />} />

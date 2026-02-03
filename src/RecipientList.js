@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // navigateをインポート
 
-function RecipientList() {
+function RecipientList({ loginUser }) {
   const [friends, setFriends] = useState([]);
   const navigate = useNavigate(); // navigateを使えるようにする
 
@@ -52,7 +52,9 @@ function RecipientList() {
     </div>
 
       <div>
-        {friends.map(friend => (
+        {friends
+        .filter(friend => friend.id !== loginUser?.id)
+        .map(friend => (
           <div 
             key={friend.id} 
             onClick={() => navigate('/step4', { state: { selectedUser: friend } })} // ここを追加！

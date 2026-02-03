@@ -1,61 +1,61 @@
-// src/CreateRequest.jsx
-import React from "react";
-import "./App.css";           // ★重要：App.jsと同じレイアウトを使うため読み込む
-import "./CreateRequest.css"; // この画面専用のスタイル
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import "./App.css";
+import "./CreateRequest.css";
 
 const CreateRequest = () => {
   const navigate = useNavigate();
 
-  const handleCreate = () => {
-    console.log("リンク作成ボタンが押されました");
-  };
+  const [amount, setAmount] = useState("");
+  const [message, setMessage] = useState("");
 
-  const handleBack = () => {
-    console.log("戻るボタンが押されました");
+  const handleCreate = () => {
+    // ★ 仮の請求者名（あとで loginUser.name に置き換える）
+    const requester = "山田 太郎";
+
+    // ★ URLに埋め込む
+    const link = `/payrequest?from=${encodeURIComponent(requester)}&amount=${amount}&message=${encodeURIComponent(message)}`;
+
+    navigate("/requestcomplete", {
+      state: { link }
+    });
   };
 
   return (
-    // ★App.jsと同じ「page > screen」の入れ子構造にします
     <div className="page">
       <div className="screen">
-        
-        {/* タイトル */}
         <h2 className="screen-title">請求リンクの作成</h2>
 
-        {/* 金額入力 */}
         <div className="form-group">
           <label className="input-label">請求金額</label>
-          <input 
-            type="number" 
-            className="text-input" 
-            placeholder="3000" 
+          <input
+            type="number"
+            className="text-input"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="3000"
           />
           <span className="currency-unit">円</span>
         </div>
 
-        {/* メッセージ入力 */}
         <div className="form-group">
           <label className="input-label">メッセージ（任意）</label>
-          <textarea 
-            className="text-input" 
+          <textarea
+            className="text-input"
+            rows="4"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
             placeholder="飲み会代お願いします！"
-            rows="4" 
-            style={{ resize: "none" }}
-          ></textarea>
+          />
         </div>
 
-        {/* 作成ボタン */}
-        <button onClick={() => navigate("/requestcomplete")} className="create-link-btn" >
-          <span className="actionText">リンクを作成</span>
+        <button onClick={handleCreate} className="create-link-btn">
+          リンクを作成
         </button>
 
-        {/* 戻るボタン */}
         <button className="back-btn" onClick={() => navigate("/")}>
           トップ画面に戻る
         </button>
-
       </div>
     </div>
   );

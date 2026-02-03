@@ -10,18 +10,39 @@ const CreateRequest = ({ user }) => {
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
 
-  const handleCreate = () => {
-    // 2. loginUser ではなく、受け取った props の user を使用する
-    // 安全のため、userが存在しない場合は "ゲスト" とするなどの対策を入れています
-    const requester = user ? user.name : "ゲスト";
+  const handleCreate = async () => {
+  if (!amount) return;
 
-    // URLに埋め込む
-    const link = `/payrequest?from=${encodeURIComponent(requester)}&amount=${amount}&message=${encodeURIComponent(message)}`;
+  const requestData = {
+    requesterId: user.id,
+    requesterName: user.name,
+    amount: Number(amount),
+    message,
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    // ★ db.json に保存
+    await fetch("http://localhost:3010/requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestData)
+    });
+
+    // ★ 請求リンク生成
+    const link = `/payrequest?from=${encodeURIComponent(
+      user.name
+    )}&amount=${amount}&message=${encodeURIComponent(message)}`;
 
     navigate("/requestcomplete", {
       state: { link }
     });
-  };
+
+  } catch (err) {
+    alert("請求の保存に失敗しました");
+    console.error(err);
+  }
+};
 
   return (
     <div className="page">

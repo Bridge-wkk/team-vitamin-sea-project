@@ -46,7 +46,7 @@ export default function App() {
         </button>
 
         {/* 請求ボタン */}
-        <button className="actionButton" type="button">
+          <button onClick={() => navigate("/createrequest")} className="actionButton" type="button">
           <img className="actionIcon" src="/images/approval.png" alt="" />
           <span className="actionText">請求する</span>
         </button>

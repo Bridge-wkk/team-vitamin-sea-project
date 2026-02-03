@@ -1,0 +1,78 @@
+.rcPage {
+    min-height: 100vh;
+    display: grid;
+    place-items: start center;
+    padding: 40px 16px;
+    background: #fff;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP",
+      "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  }
+  
+  .rcScreen {
+    width: min(360px, 100%);
+    padding: 18px 14px;
+    background: #fff;
+  }
+  
+  .rcTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111;
+    margin-top: 8px;
+    margin-bottom: 14px;
+  }
+  
+  /* （請求リンクをここに表示する）部分の見た目 */
+  .rcLinkBox {
+    border: 1px solid #e6e6e6;
+    border-radius: 10px;
+    padding: 14px 12px;
+    background: #fff;
+    margin-bottom: 14px;
+  }
+  
+  .rcLink {
+    display: block;
+    font-size: 12px;
+    color: #111;
+    text-decoration: none;
+    word-break: break-all;
+  }
+  
+  /* リンクをコピー：緑のボタン */
+  .rcCopyButton {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    background: #2e7d32; /* それっぽい緑 */
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  
+  .rcCopyButton:hover {
+    filter: brightness(0.98);
+  }
+  
+  /* トップに戻る：白ボタン */
+  .rcBackButton {
+    width: 100%;
+    margin-top: 12px;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-weight: 600;
+  
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    color: #111;
+    cursor: pointer;
+  }
+  
+  .rcBackButton:hover {
+    background: #f7f7f7;
+  }
+  

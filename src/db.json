@@ -1,29 +1,52 @@
 {
-  "user": {
-    "name": "サンプル 氏名",
-    "accountNumber": "0000000",
-    "balance": 49998
-  },
   "friends": [
     {
       "id": "1",
       "name": "サンプル 氏名A",
+      "accountNumber": "1111111",
+      "balance": 30000,
+      "password": "passwordA",
       "icon": "/images/human1.png"
     },
     {
       "id": "2",
       "name": "サンプル 氏名B",
+      "accountNumber": "2222222",
+      "balance": 45000,
+      "password": "passwordB",
       "icon": "/images/human2.png"
     },
     {
       "id": "3",
       "name": "サンプル 氏名C",
+      "accountNumber": "3333333",
+      "balance": 20000,
+      "password": "passwordC",
       "icon": "/images/human3.png"
     },
     {
       "id": "4",
       "name": "サンプル 氏名D",
+      "accountNumber": "4444444",
+      "balance": 60000,
+      "password": "passwordD",
       "icon": "/images/human4.png"
+    },
+     {
+      "id": "5",
+      "name": "サンプル 氏名E",
+      "accountNumber": "5555555",
+      "balance": 60000,
+      "password": "passwordE",
+      "icon": "/images/human5.png"
+    },
+    {
+      "id": "6",
+      "name": "サンプル 氏名F",
+      "accountNumber": "6666666",
+      "balance": 60000,
+      "password": "passwordF",
+      "icon": "/images/human6.png"
     }
   ]
 }

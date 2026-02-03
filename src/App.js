@@ -1,7 +1,9 @@
 import React from "react";
 import "./App.css";
+import { useNavigate } from "react-router-dom";
 
 export default function App() {
+  const navigate = useNavigate();
   return (
     <div className="page">
       <div className="screen">
@@ -30,7 +32,7 @@ export default function App() {
         </button>
 
         {/* 送金ボタン（残高の下） */}
-        <button className="sendButton" type="button">
+        <button onClick={() => navigate("/recipientlist")} className="sendButton" type="button">
           <img className="sendIcon" src="/images/wallet.png" alt="" />
           <span className="sendText">送金する</span>
         </button>

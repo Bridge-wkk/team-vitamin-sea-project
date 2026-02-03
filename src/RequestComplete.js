@@ -48,7 +48,7 @@ export default function RequestComplete({
         <button
           className="rcBackButton"
           type="button"
-          onClick={() => onBackToTop && onBackToTop()}
+          onClick={() => navigate("/")}
         >
           トップ画面に戻る
         </button>

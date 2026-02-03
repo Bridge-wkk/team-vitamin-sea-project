@@ -1,11 +1,13 @@
 import React from "react";
 import "./RequestComplete.css";
+import { useNavigate } from "react-router-dom";
 
 export default function RequestComplete({
   requestUrl = "https://example.com/request/abcd1234", // 仮置き
   onCopy,
   onBackToTop,
 }) {
+  const navigate = useNavigate();
   return (
     <div className="rcPage">
       <div className="rcScreen">

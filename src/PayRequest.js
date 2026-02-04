@@ -8,7 +8,7 @@ const PayRequest = ({ loginUser }) => {
   const [params] = useSearchParams();
 
   // URLパラメータの取得
-  const requestId = params.get("requestId"); // ★重要：請求データのID
+  const requestId = params.get("requestId"); // 請求データのID（あれば）
   const requesterId = params.get("requesterId") ?? "";
   const requesterNameFromQuery = params.get("from") ?? "";
   const amountStr = params.get("amount") ?? "0";
@@ -20,18 +20,21 @@ const PayRequest = ({ loginUser }) => {
   // 1. 未ログイン時のリダイレクト処理（元の場所を記憶）
   useEffect(() => {
     if (!loginUser) {
+      // ✅ Login 側が見ているキーは redirectTo
+      // ✅ pathname だけでなく search（クエリ）も含めるのが超重要
       navigate("/", {
         replace: true,
-        state: { from: location }, // ログイン後に戻ってこれるようにする
+        state: { redirectTo: `${location.pathname}${location.search}` },
       });
     }
-  }, [loginUser, navigate, location]);
+  }, [loginUser, navigate, location.pathname, location.search]);
 
   // 2. 請求者（相手）の情報を取得
   useEffect(() => {
     if (!loginUser) return;
 
-    // requesterIdがない場合（古いリンクなど）のフォールバック
+    // ✅ requesterId がない場合（古いリンクなど）のフォールバック
+    // （元コードだと requestId を見ていたけど、ここは requesterId が正しい）
     if (!requesterId) {
       setSelectedUser({
         name: requesterNameFromQuery,
@@ -43,11 +46,10 @@ const PayRequest = ({ loginUser }) => {
     fetch(`http://localhost:3010/friends/${requesterId}`)
       .then((res) => res.json())
       .then((friend) => {
-        // 相手の現在の残高なども含めてセットする
         setSelectedUser({
           ...friend,
           name: friend.name || requesterNameFromQuery,
-          icon: friend.icon || "/images/human1.png"
+          icon: friend.icon || "/images/human1.png",
         });
       })
       .catch((err) => {
@@ -59,11 +61,10 @@ const PayRequest = ({ loginUser }) => {
       });
   }, [loginUser, requesterId, requesterNameFromQuery]);
 
-
   // --- 送金実行処理 ---
   const handleSend = async () => {
     if (!loginUser || !selectedUser) return;
-    
+
     // 残高不足チェック
     if (Number(loginUser.balance) < amount) {
       alert("残高が不足しています");
@@ -74,20 +75,20 @@ const PayRequest = ({ loginUser }) => {
       // (A) 自分の残高を減らす
       const myNewBalance = Number(loginUser.balance) - amount;
       await fetch(`http://localhost:3010/friends/${loginUser.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ balance: myNewBalance }),
       });
 
       // (B) 相手（請求者）の残高を増やす
       const partnerNewBalance = (Number(selectedUser.balance) || 0) + amount;
       await fetch(`http://localhost:3010/friends/${requesterId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ balance: partnerNewBalance }),
       });
 
-      // (C) 送金履歴(send1)への保存（TransactionHistoryとは別の送金ログ）
+      // (C) 送金履歴(send1)への保存
       const sendData = {
         senderId: loginUser.id,
         senderName: loginUser.name,
@@ -95,23 +96,23 @@ const PayRequest = ({ loginUser }) => {
         receiverName: selectedUser.name,
         amount: amount,
         message: message,
-        date: new Date().toLocaleString('ja-JP'),
-        type: "request_payment"
+        date: new Date().toLocaleString("ja-JP"),
+        type: "request_payment",
       };
       await fetch("http://localhost:3010/send1", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(sendData)
+        body: JSON.stringify(sendData),
       });
 
-      // ★(D) 請求データのステータス更新 (ここがポイント！)
+      // (D) 請求データのステータス更新（requestIdがある時だけ）
       if (requestId) {
         await fetch(`http://localhost:3010/requests/${requestId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            status: "paid",       // 支払い済みに変更
-            payerId: loginUser.id // 誰が払ったかを記録
+            status: "paid",
+            payerId: loginUser.id,
           }),
         });
       }
@@ -120,7 +121,6 @@ const PayRequest = ({ loginUser }) => {
       navigate("/step6", {
         state: { selectedUser, amount, message },
       });
-
     } catch (err) {
       console.error("送金エラー", err);
       alert("送金に失敗しました");
@@ -132,14 +132,22 @@ const PayRequest = ({ loginUser }) => {
 
   return (
     <div style={{ padding: "20px", textAlign: "center" }}>
-      <button onClick={() => navigate("/home")} style={{ float: "left" }}>＜ 戻る</button>
+      <button onClick={() => navigate("/home")} style={{ float: "left" }}>
+        ＜ 戻る
+      </button>
       <div style={{ clear: "both" }}></div>
 
       <div style={{ marginTop: "30px" }}>
         <img
           src={selectedUser.icon}
           alt=""
-          style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", margin: "12px 0" }}
+          style={{
+            width: "80px",
+            height: "80px",
+            borderRadius: "50%",
+            objectFit: "cover",
+            margin: "12px 0",
+          }}
         />
         <h3>{selectedUser.name} さんからの請求</h3>
       </div>
@@ -149,15 +157,33 @@ const PayRequest = ({ loginUser }) => {
       </p>
 
       {message && (
-         <div style={{ backgroundColor: "#f0f7ff", padding: "10px", borderRadius: "8px", display: "inline-block", marginTop: "10px" }}>
+        <div
+          style={{
+            backgroundColor: "#f0f7ff",
+            padding: "10px",
+            borderRadius: "8px",
+            display: "inline-block",
+            marginTop: "10px",
+          }}
+        >
           「{message}」
         </div>
       )}
-      
+
       <br />
 
       <button
-        style={{ marginTop: "30px", padding: "12px 40px", background: "#d32f2f", color: "#fff", border: "none", borderRadius: "20px", cursor: "pointer", fontSize: "16px", fontWeight: "bold" }}
+        style={{
+          marginTop: "30px",
+          padding: "12px 40px",
+          background: "#d32f2f",
+          color: "#fff",
+          border: "none",
+          borderRadius: "20px",
+          cursor: "pointer",
+          fontSize: "16px",
+          fontWeight: "bold",
+        }}
         onClick={handleSend}
       >
         送金する

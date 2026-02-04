@@ -1,3 +1,4 @@
+// src/Login.js
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./App.css";
@@ -8,7 +9,18 @@ const Login = ({ setLoginUser }) => {
   const location = useLocation();
 
   // PayRequest から渡された「戻り先」
+  // 想定: "/payrequest?requesterId=...&amount=..."
   const redirectTo = location.state?.redirectTo;
+
+  // ✅ redirectTo が string の場合はそのまま使う
+  // ✅ もし location オブジェクトで来ても動くように保険（pathname + search）
+  // ✅ 何もなければ /home
+  const redirectPath =
+    typeof redirectTo === "string"
+      ? redirectTo
+      : redirectTo?.pathname
+      ? `${redirectTo.pathname}${redirectTo.search || ""}`
+      : "/home";
 
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
@@ -19,17 +31,17 @@ const Login = ({ setLoginUser }) => {
       return;
     }
 
-    fetch(`http://localhost:3010/friends?id=${id}`)
+    fetch(`http://localhost:3010/friends?id=${encodeURIComponent(id)}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.length > 0 && data[0].password === password) {
           const user = data[0];
 
-          localStorage.setItem("loginUserId", user.id);
+          localStorage.setItem("loginUserId", String(user.id));
           setLoginUser(user);
 
-          // ★ここがポイント：戻り先があればそこへ、なければ /home
-          navigate(redirectTo ?? "/home", { replace: true });
+          // ✅ 戻り先があればそこへ、なければ /home
+          navigate(redirectPath, { replace: true });
         } else {
           alert("IDまたはパスワードが間違っています");
         }
@@ -43,7 +55,10 @@ const Login = ({ setLoginUser }) => {
   return (
     <div className="page">
       <div className="screen">
-        <h2 className="screen-title" style={{ textAlign: "center", marginTop: "40px" }}>
+        <h2
+          className="screen-title"
+          style={{ textAlign: "center", marginTop: "40px" }}
+        >
           ログイン
         </h2>
 

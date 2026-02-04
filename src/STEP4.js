@@ -17,6 +17,18 @@ function Step4Screen({ loginUser }) {
     const myNewBalance = Number(loginUser.balance) - sendAmount; 
     const friendNewBalance = (Number(selectedUser.balance) || 0) + sendAmount;
 
+    // ★ 送金履歴データの作成（CreateRequestのロジックを応用）
+  const sendData = {
+    senderId: loginUser.id,
+    senderName: loginUser.name,
+    receiverId: selectedUser.id,
+    receiverName: selectedUser.name,
+    amount: sendAmount,
+    message: message,
+    date: new Date().toLocaleString('ja-JP'), // 日本時間で記録
+    type: "transfer"
+  };
+
     try {
       // 両方の残高をDBで更新
       await fetch(`http://localhost:3010/friends/${loginUser.id}`, {
@@ -29,6 +41,12 @@ function Step4Screen({ loginUser }) {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ balance: friendNewBalance }),
+      });
+      // ★ 3. 履歴を db.json の "send1" に保存（ここを追加！）
+      await fetch("http://localhost:3010/send1", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sendData)
       });
 
       // 完了画面へ移動し、メッセージを渡す

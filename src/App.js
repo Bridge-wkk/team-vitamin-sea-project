@@ -80,7 +80,7 @@ export default function App({ loginUser }) {
         style={{ marginTop: '10px', backgroundColor: '#fff', border: '1px solid #ddd' }}
         type="button"
         >
-          <img className="actionIcon" src="/images/history.png" alt="" />
+          <img className="actionIcon" src="/images/rireki.png" alt="" />
           <span className="actionText" style={{ color: '#333' }}> 
             請求・送金状況を確認する
           </span>

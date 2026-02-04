@@ -4,7 +4,7 @@
       "id": "1",
       "name": "サンプル 氏名A",
       "accountNumber": "1111111",
-      "balance": 42138,
+      "balance": 53249,
       "password": "passwordA",
       "icon": "/images/human1.png"
     },
@@ -44,7 +44,7 @@
       "id": "6",
       "name": "サンプル 氏名F",
       "accountNumber": "6666666",
-      "balance": 60050,
+      "balance": 48939,
       "password": "passwordF",
       "icon": "/images/human6.png"
     }
@@ -103,7 +103,9 @@
       "amount": 11111,
       "message": "aaaa",
       "createdAt": "2026/2/4 14:45:34",
-      "status": "unpaid"
+      "status": "paid",
+      "payerId": "6",
+      "paidAt": "2026/2/4 15:51:32"
     },
     {
       "id": "c761",
@@ -306,6 +308,18 @@
       "date": "2025/11/15 11:00:00",
       "type": "transfer",
       "message": "仕送り"
+    },
+    {
+      "id": "66e4",
+      "senderId": "6",
+      "senderName": "サンプル 氏名F",
+      "receiverId": "1",
+      "receiverName": "サンプル 氏名A",
+      "receiverIcon": "/images/human1.png",
+      "amount": 11111,
+      "message": "aaaa",
+      "date": "2026/2/4 15:51:32",
+      "type": "transfer"
     }
   ],
   "reseive": []

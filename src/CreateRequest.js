@@ -1,9 +1,9 @@
+// src/CreateRequest.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./App.css";
 import "./CreateRequest.css";
 
-// ★ 引数を user から loginUser に変更
 const CreateRequest = ({ loginUser }) => {
   const navigate = useNavigate();
 
@@ -11,7 +11,6 @@ const CreateRequest = ({ loginUser }) => {
   const [message, setMessage] = useState("");
 
   const handleCreate = async () => {
-    // ★ ガード：loginUser が無い場合は処理を中断する
     if (!loginUser) {
       alert("ログイン情報が取得できません。一度トップに戻ってください。");
       return;
@@ -19,11 +18,11 @@ const CreateRequest = ({ loginUser }) => {
     if (!amount) return;
 
     const requestData = {
-      requesterId: loginUser.id, // ★ ここを loginUser に修正
+      requesterId: loginUser.id,
       requesterName: loginUser.name,
       amount: Number(amount),
       message,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
 
     try {
@@ -31,25 +30,25 @@ const CreateRequest = ({ loginUser }) => {
       await fetch("http://localhost:3010/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify(requestData),
       });
 
-      // 請求リンク生成
-      const link = `/payrequest?from=${encodeURIComponent(
-        loginUser.name
-      )}&amount=${amount}&message=${encodeURIComponent(message)}`;
+      // ★請求リンク生成：requesterId を追加（これが重要）
+      const link = `/payrequest?requesterId=${encodeURIComponent(
+        loginUser.id
+      )}&from=${encodeURIComponent(loginUser.name)}&amount=${encodeURIComponent(
+        amount
+      )}&message=${encodeURIComponent(message)}`;
 
       navigate("/requestcomplete", {
-        state: { link }
+        state: { link },
       });
-
     } catch (err) {
       alert("請求の保存に失敗しました");
       console.error(err);
     }
   };
 
-  // ★ 読み込み中ガード
   if (!loginUser) return <div className="page">読み込み中...</div>;
 
   return (

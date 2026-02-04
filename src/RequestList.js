@@ -51,7 +51,7 @@ const RequestList = ({ loginUser }) => {
           </div>
         )}
 
-        <button className="back-btn" onClick={() => navigate("/")} style={{ marginTop: '20px' }}>
+        <button className="back-btn" onClick={() => navigate("/home")} style={{ marginTop: '20px' }}>
           トップへ戻る
         </button>
       </div>

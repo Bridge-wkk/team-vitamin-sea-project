@@ -20,8 +20,8 @@ const TransactionHistory = ({ loginUser }) => {
     <div style={{ backgroundColor: '#fff', minHeight: '100vh' }}>
       {/* ヘッダー */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '15px', borderBottom: '1px solid #ddd' }}>
-        <button onClick={() => navigate("/")} style={{ background: 'none', border: 'none', fontSize: '18px' }}>＜ 戻る</button>
-        <h2 style={{ fontSize: '17px', margin: '0 auto' }}>請求状況</h2>
+        <button onClick={() => navigate("/home")} style={{ background: 'none', border: 'none', fontSize: '18px' }}>＜ 戻る</button>
+        <h2 style={{ fontSize: '17px', margin: '0 auto' }}>請求・送金履歴</h2>
       </div>
 
       <div style={{ padding: '15px' }}>

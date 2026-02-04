@@ -19,16 +19,15 @@ const CreateRequest = ({ loginUser }) => {
   const handleAmountChange = (e) => {
     const value = e.target.value;
 
-    // 空欄にできないと不便なので許可
     if (value === "") {
       setAmount("");
       setAmountError("1円以上の半角数字で入力してください");
       return;
     }
 
-    // 半角数字以外（全角・マイナス・小数・e・文字）を弾く
+    // 半角数字以外を弾く
     if (!/^[0-9]+$/.test(value)) {
-      return; // 反映しない
+      return;
     }
 
     const n = Number(value);
@@ -36,7 +35,6 @@ const CreateRequest = ({ loginUser }) => {
     if (!Number.isInteger(n) || n < 1) {
       setAmountError("1円以上の半角数字で入力してください");
     } else if (n > balance) {
-      // もし「残高制限したくない」なら、この分岐は消せばOK（機能は残るが制約が外れる）
       setAmountError("残高を超えています");
     } else {
       setAmountError("");
@@ -51,7 +49,7 @@ const CreateRequest = ({ loginUser }) => {
       return;
     }
 
-    // ★最終防衛ライン（ここ超重要）
+    // 最終防衛ライン
     const n = Number(amount);
     if (!Number.isInteger(n) || n < 1) {
       alert("請求金額は1円以上の半角数字で入力してください。");
@@ -68,22 +66,29 @@ const CreateRequest = ({ loginUser }) => {
       amount: n,
       message,
       createdAt: new Date().toLocaleString("ja-JP"),
+      status: "unpaid", // ✅ 追加：未払いで作る
     };
 
     try {
-      // db.json に保存（機能はそのまま）
-      await fetch("http://localhost:3010/requests", {
+      // ✅ db.json に保存 → 作成されたデータ（id付き）を受け取る
+      const res = await fetch("http://localhost:3010/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
       });
 
-      // ★請求リンク生成：requesterId を追加（これが重要）（機能はそのまま）
-      const link = `/payrequest?requesterId=${encodeURIComponent(
-        loginUser.id
-      )}&from=${encodeURIComponent(loginUser.name)}&amount=${encodeURIComponent(
-        String(n)
-      )}&message=${encodeURIComponent(message)}`;
+      if (!res.ok) throw new Error("request create failed");
+
+      const created = await res.json(); // json-server は作成レコード（id付き）を返す
+      const requestId = created.id;
+
+      // ✅ ここが今回の肝：requestId をリンクに入れる
+      // 互換のため requesterId/from も付与（あっても害なし）
+      const link = `/payrequest?requestId=${encodeURIComponent(
+        String(requestId)
+      )}&requesterId=${encodeURIComponent(
+        String(loginUser.id)
+      )}&from=${encodeURIComponent(loginUser.name)}`;
 
       navigate("/requestcomplete", {
         state: { link },
@@ -106,7 +111,6 @@ const CreateRequest = ({ loginUser }) => {
         <div className="form-group">
           <label className="input-label">請求金額</label>
 
-          {/* ★ type=number をやめて、text + 入力制御で半角数字のみ */}
           <input
             type="text"
             className="text-input"

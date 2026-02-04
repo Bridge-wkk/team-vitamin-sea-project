@@ -118,7 +118,7 @@ export default function App({ loginUser }) {
 
         {/* メニュー */}
         <button onClick={() => navigate("/transactionhistory")} className="actionButton" style={{ marginTop: '10px', backgroundColor: '#fff', border: '1px solid #ddd' }}>
-          <img className="actionIcon" src="/images/history.png" alt="" />
+          <img className="actionIcon" src="/images/rireki.png" alt="" />
           <span className="actionText" style={{ color: '#333' }}>請求・送金状況を確認する</span>
         </button>
 
@@ -133,7 +133,7 @@ export default function App({ loginUser }) {
         </button>
 
         {hasPendingRequest && (
-          <button onClick={() => navigate("/payrequest")} className="actionButton" style={{ backgroundColor: '#fff5f5', border: '1px solid #ffcccc', marginTop: '10px' }}>
+          <button onClick={() => navigate("/requestlist")} className="actionButton" style={{ backgroundColor: '#fff5f5', border: '1px solid #ffcccc', marginTop: '10px' }}>
             <img className="actionIcon" src="/images/bikkurimark.png" alt="" />
             <span className="actionText" style={{ color: '#D11C1C', fontWeight: 'bold' }}>支払いリクエストが届いています</span>
           </button>

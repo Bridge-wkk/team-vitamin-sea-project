@@ -12,7 +12,7 @@ import CreateRequest from "./CreateRequest";
 import RequestComplete from "./RequestComplete";
 import PayRequest from "./PayRequest";
 import TransactionHistory from "./TransactionHistory";
-import RequestList from "./RequestList";
+import BalanceHistory from "./BalanceHistory"; // ★追加
 
 function Routers() {
   const [loginUser, setLoginUser] = useState(null);
@@ -135,8 +135,17 @@ function Routers() {
           }
         />
 
-        {/* 請求一覧画面 */}
-        <Route path="/requestlist" element={<RequestList loginUser={loginUser} />} />
+        {/* ★追加: 残高履歴画面 (ログイン必須) */}
+        <Route
+          path="/balance"
+          element={
+            loginUser ? (
+              <BalanceHistory loginUser={loginUser} />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

@@ -3,20 +3,20 @@ import React from "react";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
 
-export default function App({ loginUser }) { 
+export default function App({ loginUser }) {
   const navigate = useNavigate();
   const [currentBalance, setCurrentBalance] = React.useState(loginUser ? loginUser.balance : 0);
-  
-  // ★ 一週間経過した「未払い」の請求データを保持する
+
+  // ★ 他の人が追加した機能：一週間経過した「未払い」の請求データを保持する
   const [urgentRequest, setUrgentRequest] = React.useState(null);
-  // ★ 支払いリクエストボタンを表示するかどうかの判定
+  // ★ 他の人が追加した機能：支払いリクエストボタンを表示するかどうかの判定
   const [hasPendingRequest, setHasPendingRequest] = React.useState(false);
 
   // ログアウト処理
   const handleLogout = () => {
-    localStorage.removeItem('loginUserId'); 
-    navigate('/'); 
-    window.location.reload(); 
+    localStorage.removeItem('loginUserId');
+    navigate('/');
+    window.location.reload();
   };
 
   React.useEffect(() => {
@@ -35,11 +35,11 @@ export default function App({ loginUser }) {
           const oneWeekMs = 7 * 24 * 60 * 60 * 1000; // 7日間をミリ秒で計算
 
           // 自分宛かつステータスが "unpaid" のものを抽出
-          const myUnpaidRequests = allRequests.filter(req => 
+          const myUnpaidRequests = allRequests.filter(req =>
             req.receiverName === loginUser.name && req.status === "unpaid"
           );
 
-          // 1件でも未払いがあれば、通常の「リクエスト届いています」ボタンを出す
+          // 1件でも未払いがあれば、通常の「リクエスト届いています」ボタンを出す準備
           setHasPendingRequest(myUnpaidRequests.length > 0);
 
           // その中で、作成から一週間（7日）以上経っているものを探す
@@ -51,7 +51,7 @@ export default function App({ loginUser }) {
           // 緊急のものが見つかった場合、ポップアップを表示し音を鳴らす
           if (urgent) {
             setUrgentRequest(urgent);
-            const audio = new Audio('https://actions.google.com/google_assistant/notifications/emergency_alert.mp3'); 
+            const audio = new Audio('https://actions.google.com/google_assistant/notifications/emergency_alert.mp3');
             audio.play().catch(e => console.log("ブラウザの制限により、ユーザーが画面を触るまで音は鳴りません"));
           }
         });
@@ -78,35 +78,73 @@ export default function App({ loginUser }) {
             </div>
             <div className="name">{loginUser.name}</div>
           </div>
-          <button 
-            onClick={handleLogout} 
-            style={{ fontSize: '11px', padding: '4px 8px', backgroundColor: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', color: '#666' }}
+          <button
+            onClick={handleLogout}
+            style={{ 
+              fontSize: '11px', 
+              padding: '4px 8px', 
+              backgroundColor: '#f0f0f0', 
+              border: '1px solid #ccc', 
+              borderRadius: '4px', 
+              cursor: 'pointer', 
+              color: '#666' 
+            }}
           >
             ログアウト
           </button>
         </div>
 
-        {/* 口座番号 / 残高表示 */}
+        {/* 口座番号 (横のボタンは削除済み) */}
         <div className="subRow" style={{ marginTop: '20px' }}>
           <div className="subLeft">口座番号：{loginUser.accountNumber}</div>
-          <button className="subRight" type="button">残高表示</button>
         </div>
 
-        <button className="balanceCard" type="button">
-          <div className="balanceAmount">
-            {currentBalance.toLocaleString()}円
+        {/* ★【修正箇所】残高カード：クリックで /balance へ遷移 & デザイン調整 */}
+        <button 
+          className="balanceCard" 
+          type="button" 
+          onClick={() => navigate("/balance")} 
+          style={{ 
+            cursor: "pointer",
+            display: "flex", 
+            justifyContent: "space-between", // 左の文字群と右の矢印を離す
+            alignItems: "center",            // 上下中央揃え
+            textAlign: "left",
+            padding: "15px 20px"             // 余白を調整して見やすく
+          }}
+        >
+          {/* 左側：ラベルと金額 */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+            <span style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>
+              残高
+            </span>
+            <div className="balanceAmount">
+              {currentBalance.toLocaleString()}円
+            </div>
           </div>
-          <img className="chevron" src="/images/chevron-right.png" alt="" />
+
+          {/* 右側：矢印 (サイズ調整済み) */}
+          <img 
+            className="chevron" 
+            src="/images/chevron-right.png" 
+            alt="" 
+            style={{ 
+              width: "16px",       // サイズを小さく固定
+              height: "16px",      // サイズを小さく固定
+              opacity: 0.4,        // 少し薄くして目立ちすぎないように
+              objectFit: "contain" // 縦横比を維持
+            }} 
+          />
         </button>
 
-        {/* アクションメニュー */}
+
+        {/* アクションメニュー（通常の送金・請求） */}
         <button onClick={() => navigate("/transactionhistory")} className="actionButton"
           style={{ marginTop: '10px', backgroundColor: '#fff', border: '1px solid #ddd' }}
           type="button"
         >
           <img className="actionIcon" src="/images/history.png" alt="" />
           <span className="actionText" style={{ color: '#333' }}>請求・送金状況を確認する</span>
-
         </button>
 
         <button onClick={() => navigate("/recipientlist")} className="actionButton" type="button">
@@ -114,17 +152,17 @@ export default function App({ loginUser }) {
           <span className="actionText">送金する</span>
         </button>
 
-        <button onClick={() => navigate("/recipientlist", { state: { mode: "request" } })} 
+        <button onClick={() => navigate("/recipientlist", { state: { mode: "request" } })}
           className="actionButton" type="button">
           <img className="actionIcon" src="/images/approval.png" alt="" />
           <span className="actionText">請求する</span>
         </button>
 
-        {/* ★ 未払い（unpaid）がある時だけ表示される通知ボタン */}
+        {/* ★ 他の人が実装した機能：未払い（unpaid）がある時だけ表示される通知ボタン */}
         {hasPendingRequest && (
-          <button 
-            onClick={() => navigate("/payrequest")} 
-            className="actionButton" 
+          <button
+            onClick={() => navigate("/payrequest")}
+            className="actionButton"
             style={{ backgroundColor: '#fff5f5', border: '1px solid #ffcccc', marginTop: '10px' }}
             type="button"
           >
@@ -136,7 +174,7 @@ export default function App({ loginUser }) {
         )}
       </div>
 
-      {/* ★ 一週間経過メッセージのポップアップ（最前面に表示） */}
+      {/* ★ 他の人が実装した機能：一週間経過メッセージのポップアップ（最前面に表示） */}
       {urgentRequest && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -152,7 +190,7 @@ export default function App({ loginUser }) {
             <p style={{ fontSize: '15px', color: '#333', lineHeight: '1.6', marginBottom: '25px' }}>
               {urgentRequest.requesterName}さんからの請求（{urgentRequest.amount.toLocaleString()}円）から一週間以上経過しています。速やかにお支払いください。
             </p>
-            <button 
+            <button
               onClick={() => navigate("/payrequest")}
               style={{
                 width: '100%', backgroundColor: '#D11C1C', color: 'white', border: 'none',
@@ -161,7 +199,7 @@ export default function App({ loginUser }) {
             >
               今すぐ支払う
             </button>
-            <button 
+            <button
               onClick={() => setUrgentRequest(null)}
               style={{ background: 'none', border: 'none', color: '#999', marginTop: '15px', fontSize: '13px', cursor: 'pointer' }}
             >

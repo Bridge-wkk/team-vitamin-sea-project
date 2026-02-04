@@ -1,11 +1,13 @@
 // src/CreateRequest.js
 import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 import "./CreateRequest.css";
 
 const CreateRequest = ({ loginUser }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { selectedUser } = location.state || {};
 
   // 金額は文字列で持つ（入力制御しやすい）
   const [amount, setAmount] = useState("");
@@ -63,6 +65,8 @@ const CreateRequest = ({ loginUser }) => {
     const requestData = {
       requesterId: loginUser.id,
       requesterName: loginUser.name,
+      receiverId: selectedUser.id,
+      receiverName: selectedUser.name,
       amount: n,
       message,
       createdAt: new Date().toLocaleString("ja-JP"),

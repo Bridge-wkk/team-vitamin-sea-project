@@ -97,6 +97,16 @@ export default function App({ loginUser }) {
             支払いリクエストが届いています
           </span>
         </button>
+        
+        <button onClick={() => navigate("/transactionhistory")} className="actionButton"
+        style={{ marginTop: '10px', backgroundColor: '#fff', border: '1px solid #ddd' }}
+        type="button"
+        >
+          <img className="actionIcon" src="/images/history.png" alt="" />
+          <span className="actionText" style={{ color: '#333' }}> 
+            送金・請求履歴を確認する
+          </span>
+        </button>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 // src/Routers.js
 import React, { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+// ★修正1: ここに Navigate を追加しました
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // --- 各画面のインポート ---
 import App from "./App";
@@ -11,6 +12,7 @@ import Step6Screen from "./step6";
 import CreateRequest from "./CreateRequest";
 import RequestComplete from "./RequestComplete";
 import PayRequest from "./PayRequest";
+import TransactionHistory from "./TransactionHistory";
 
 function Routers() {
   const [loginUser, setLoginUser] = useState(null);
@@ -42,7 +44,7 @@ function Routers() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ログイン画面 */}
+        {/* ログイン画面 (パスは "/") */}
         <Route path="/" element={<Login setLoginUser={setLoginUser} />} />
 
         {/* ホーム */}
@@ -63,7 +65,7 @@ function Routers() {
           element={<CreateRequest loginUser={loginUser} />}
         />
 
-        {/* 請求リンク踏んだ先（未ログインなら中でログインへ飛ばす） */}
+        {/* 請求リンク踏んだ先 */}
         <Route
           path="/payrequest"
           element={<PayRequest loginUser={loginUser} />}
@@ -72,6 +74,13 @@ function Routers() {
         {/* 送金完了画面など */}
         <Route path="/step6" element={<Step6Screen />} />
         <Route path="/requestcomplete" element={<RequestComplete />} />
+
+        {/* 取引履歴画面 */}
+        <Route
+          path="/transactionhistory"
+          // ★修正2: ログインしていない場合は "/" (ログイン画面) へ飛ばす
+          element={loginUser ? <TransactionHistory loginUser={loginUser} /> : <Navigate to="/" />}
+        />
       </Routes>
     </BrowserRouter>
   );

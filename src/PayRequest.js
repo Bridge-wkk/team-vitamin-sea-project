@@ -8,7 +8,7 @@ const PayRequest = ({ loginUser }) => {
   const [params] = useSearchParams();
 
   // URLパラメータ
-  const requestId = params.get("requestId"); // ✅ これが主役
+  const requestId = params.get("requestId"); 
   const requesterIdFromQuery = params.get("requesterId") ?? "";
   const requesterNameFromQuery = params.get("from") ?? "";
 
@@ -16,12 +16,12 @@ const PayRequest = ({ loginUser }) => {
   const amountStrFromQuery = params.get("amount") ?? "0";
   const messageFromQuery = params.get("message") ?? "";
 
-  const [request, setRequest] = useState(null);     // requestsテーブルの請求データ
+  const [request, setRequest] = useState(null);      // requestsテーブルの請求データ
   const [selectedUser, setSelectedUser] = useState(null); // 請求者（相手）
   const [invalidReason, setInvalidReason] = useState(""); // 無効理由
   const [isSending, setIsSending] = useState(false);
 
-  // ✅ 表示用：請求額・メッセージ・請求者IDは request から取る（requestIdがある場合）
+  // ✅ 表示用：請求額・メッセージ・請求者IDは request から優先的に取る
   const amount = useMemo(() => {
     if (request) return Number(request.amount || 0);
     return Number(amountStrFromQuery || 0);
@@ -52,36 +52,41 @@ const PayRequest = ({ loginUser }) => {
     }
   }, [loginUser, navigate, location.pathname, location.search]);
 
-  // 2) requestId があるなら請求データを取得して「支払済みなら無効」
+  // 2) ✅【ここを強化】requestId があるならそれを取得、ないなら自分宛の未払いを自動検索
   useEffect(() => {
     if (!loginUser) return;
 
-    // requestId がない場合は旧仕様扱い（フォールバック）
-    if (!requestId) {
-      setRequest(null);
-      return;
-    }
-
     (async () => {
       try {
-        const res = await fetch(`http://localhost:3010/requests/${requestId}`);
-        if (!res.ok) {
-          setInvalidReason("この請求は存在しません。");
-          return;
+        if (requestId) {
+          // A: 特定のIDが指定されている場合（QRやリンクから）
+          const res = await fetch(`http://localhost:3010/requests/${requestId}`);
+          if (!res.ok) {
+            setInvalidReason("この請求は存在しません。");
+            return;
+          }
+          const data = await res.json();
+          if (data.status === "paid") {
+            setInvalidReason("この請求はすでに支払い済みです。");
+            return;
+          }
+          setRequest(data);
+        } else {
+          // B: ID指定がない場合（ホームのボタンから）→ 自分宛の未払いを1件見つける
+          const res = await fetch(`http://localhost:3010/requests`);
+          const allRequests = await res.json();
+          const myRequest = allRequests.find(req => 
+            req.receiverName === loginUser.name && req.status === "unpaid"
+          );
+
+          if (myRequest) {
+            setRequest(myRequest);
+          } else {
+            setInvalidReason("支払いが必要なリクエストは見つかりませんでした。");
+          }
         }
-
-        const data = await res.json();
-
-        // ✅ 支払済みなら無効化
-        if (data.status === "paid") {
-          setInvalidReason("この請求はすでに支払い済みです。");
-          return;
-        }
-
-        // ✅ 未払いなら保持
-        setRequest(data);
       } catch (e) {
-        console.error("requests取得エラー:", e);
+        console.error("データ取得エラー:", e);
         setInvalidReason("請求情報の取得に失敗しました。");
       }
     })();
@@ -89,18 +94,7 @@ const PayRequest = ({ loginUser }) => {
 
   // 3) 請求者（相手）の情報を取得
   useEffect(() => {
-    if (!loginUser) return;
-    if (invalidReason) return;
-
-    // requesterId がない（古いリンクなど）のフォールバック
-    if (!requesterId) {
-      setSelectedUser({
-        name: requesterName || "不明",
-        icon: "/images/human1.png",
-        balance: 0,
-      });
-      return;
-    }
+    if (!loginUser || invalidReason || !requesterId) return;
 
     fetch(`http://localhost:3010/friends/${requesterId}`)
       .then((res) => res.json())
@@ -123,22 +117,13 @@ const PayRequest = ({ loginUser }) => {
 
   // --- 送金実行処理 ---
   const handleSend = async () => {
-    if (!loginUser || !selectedUser) return;
-    if (isSending) return;
+    if (!loginUser || !selectedUser || isSending) return;
 
-    // ✅ 無効なら絶対に送金させない（最終防衛ライン）
     if (invalidReason) {
       alert(invalidReason);
       return;
     }
 
-    // ✅ requestId があるなら request を必須にする（改ざん防止）
-    if (requestId && !request) {
-      alert("請求情報が読み込めませんでした。もう一度開き直してください。");
-      return;
-    }
-
-    // 残高不足チェック
     if (Number(loginUser.balance) < amount) {
       alert("残高が不足しています");
       return;
@@ -169,10 +154,11 @@ const PayRequest = ({ loginUser }) => {
         senderName: loginUser.name,
         receiverId: requesterId,
         receiverName: selectedUser.name,
+        receiverIcon: selectedUser.icon, // 履歴でアイコンが出るように追加
         amount: amount,
         message: message,
         date: new Date().toLocaleString("ja-JP"),
-        type: "request_payment",
+        type: "transfer",
       };
       await fetch("http://localhost:3010/send1", {
         method: "POST",
@@ -180,9 +166,9 @@ const PayRequest = ({ loginUser }) => {
         body: JSON.stringify(sendData),
       });
 
-      // (D) ✅ 請求データのステータス更新：これでリンク無効化が成立
-      if (requestId) {
-        await fetch(`http://localhost:3010/requests/${requestId}`, {
+      // (D) ✅ 請求データのステータス更新：unpaidをpaidに変更
+      if (request?.id) {
+        await fetch(`http://localhost:3010/requests/${request.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -207,14 +193,9 @@ const PayRequest = ({ loginUser }) => {
 
   // 表示
   if (!loginUser) {
-    return (
-      <div style={{ padding: "20px", textAlign: "center" }}>
-        ログイン画面へ移動しています…
-      </div>
-    );
+    return <div style={{ padding: "20px", textAlign: "center" }}>ログイン画面へ移動しています…</div>;
   }
 
-  // ✅ 無効リンク表示（支払済み/存在しない等）
   if (invalidReason) {
     return (
       <div style={{ padding: "20px", textAlign: "center" }}>
@@ -229,7 +210,7 @@ const PayRequest = ({ loginUser }) => {
 
   return (
     <div style={{ padding: "20px", textAlign: "center" }}>
-      <button onClick={() => navigate("/home")} style={{ float: "left" }}>
+      <button onClick={() => navigate("/home")} style={{ float: "left", background: "none", border: "none", cursor: "pointer", fontSize: "16px" }}>
         ＜ 戻る
       </button>
       <div style={{ clear: "both" }}></div>
@@ -238,31 +219,17 @@ const PayRequest = ({ loginUser }) => {
         <img
           src={selectedUser.icon}
           alt=""
-          style={{
-            width: "80px",
-            height: "80px",
-            borderRadius: "50%",
-            objectFit: "cover",
-            margin: "12px 0",
-          }}
+          style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", margin: "12px 0" }}
         />
         <h3>{selectedUser.name} さんからの請求</h3>
       </div>
 
-      <p style={{ fontSize: "20px", fontWeight: "bold" }}>
+      <p style={{ fontSize: "28px", fontWeight: "bold", margin: "20px 0" }}>
         {amount.toLocaleString()} 円
       </p>
 
       {message && (
-        <div
-          style={{
-            backgroundColor: "#f0f7ff",
-            padding: "10px",
-            borderRadius: "8px",
-            display: "inline-block",
-            marginTop: "10px",
-          }}
-        >
+        <div style={{ backgroundColor: "#f0f7ff", padding: "10px", borderRadius: "8px", display: "inline-block", marginTop: "10px" }}>
           「{message}」
         </div>
       )}
@@ -271,16 +238,9 @@ const PayRequest = ({ loginUser }) => {
 
       <button
         style={{
-          marginTop: "30px",
-          padding: "12px 40px",
-          background: isSending ? "#999" : "#d32f2f",
-          color: "#fff",
-          border: "none",
-          borderRadius: "20px",
-          cursor: isSending ? "not-allowed" : "pointer",
-          fontSize: "16px",
-          fontWeight: "bold",
-          opacity: isSending ? 0.7 : 1,
+          marginTop: "40px", padding: "15px 60px", background: isSending ? "#999" : "#d32f2f",
+          color: "#fff", border: "none", borderRadius: "30px", cursor: isSending ? "not-allowed" : "pointer",
+          fontSize: "18px", fontWeight: "bold", opacity: isSending ? 0.7 : 1,
         }}
         onClick={handleSend}
         disabled={isSending}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./RequestList.css"; // 必要に応じてスタイルを作成してください
+//import "./RequestList.css"; // 必要に応じてスタイルを作成してください
 
 const RequestList = ({ loginUser }) => {
   const navigate = useNavigate();

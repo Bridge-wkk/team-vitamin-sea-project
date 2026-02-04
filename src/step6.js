@@ -71,7 +71,7 @@ function Step6Screen() {
 
       {/* ホームに戻るボタン */}
       <button 
-        onClick={() => navigate('/')} 
+        onClick={() => navigate('/home')} 
         style={{ 
           width: '100%', 
           padding: '16px', 

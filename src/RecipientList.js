@@ -59,7 +59,7 @@ function RecipientList({ loginUser }) {
         textAlign: 'center',
         pointerEvents: 'none' // ボタンのクリックを邪魔しない設定
       }}>
-        送金相手を選択
+        宛先を選択
       </h2>
     </div>
 

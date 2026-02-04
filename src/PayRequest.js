@@ -20,6 +20,7 @@ const PayRequest = ({ loginUser }) => {
   const [selectedUser, setSelectedUser] = useState(null); 
   const [invalidReason, setInvalidReason] = useState(""); 
   const [isSending, setIsSending] = useState(false);
+  const [replyMessage, setReplyMessage] = useState("");
 
   // 表示用データのメモ化
   const amount = useMemo(() => {
@@ -190,20 +191,56 @@ const PayRequest = ({ loginUser }) => {
   if (!selectedUser) return null;
 
   return (
-    <div style={{ padding: "20px", textAlign: "center" }}>
-      <button onClick={() => navigate("/home")} style={{ float: "left", background: "none", border: "none", cursor: "pointer", fontSize: "16px" }}>
+    <div className="page" style={{ padding: '20px', textAlign: 'center' }}>
+      {/* 1. 戻るボタン */}
+      <button onClick={() => navigate("/home")} style={{ float: "left", background: "none", border: "none", cursor: "pointer" }}>
         ＜ 戻る
       </button>
       <div style={{ clear: "both" }}></div>
+
+      {/* 2. 請求者情報 */}
       <div style={{ marginTop: "30px" }}>
-        <img src={selectedUser.icon} alt="" style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", margin: "12px 0" }} />
+        <img src={selectedUser.icon} alt="" style={{ width: '80px', height: '80px', borderRadius: "50%" }} />
         <h3>{selectedUser.name} さんからの請求</h3>
       </div>
-      <p style={{ fontSize: "28px", fontWeight: "bold", margin: "20px 0" }}>{amount.toLocaleString()} 円</p>
-      {message && <div style={{ backgroundColor: "#f0f7ff", padding: "10px", borderRadius: "8px", display: "inline-block", marginTop: "10px" }}>「{message}」</div>}
-      <br />
+
+      {/* 3. 金額と元のメッセージ */}
+      <p style={{ fontSize: "28px", fontWeight: "bold", margin: "20px 0" }}>
+        {amount.toLocaleString()} 円
+      </p>
+      {message && (
+        <div style={{ backgroundColor: "#f0f7ff", padding: "10px", borderRadius: "8px", marginBottom: "20px", fontSize: "14px" }}>
+          {message}
+        </div>
+      )}
+
+      {/* ★ 4. メッセージ入力欄（ここが正しい位置です！） */}
+      <div className="form-group" style={{ padding: '0 20px', marginBottom: '20px', textAlign: 'left' }}>
+        <label className="input-label" style={{ fontSize: '14px', color: '#666', display: 'block', marginBottom: '8px' }}>
+          支払いメッセージ（任意）
+        </label>
+        <textarea
+          className="text-input"
+          rows="3"
+          value={replyMessage}
+          onChange={(e) => setReplyMessage(e.target.value)}
+          placeholder="支払いました！ご確認お願いします。"
+          style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }}
+        />
+      </div>
+
+      {/* 5. 送金ボタン */}
       <button
-        style={{ marginTop: "40px", padding: "15px 60px", background: isSending ? "#999" : "#d32f2f", color: "#fff", border: "none", borderRadius: "30px", cursor: isSending ? "not-allowed" : "pointer", fontSize: "18px", fontWeight: "bold", opacity: isSending ? 0.7 : 1 }}
+        className="submit-button"
+        style={{ 
+          marginTop: "20px", 
+          padding: "15px 60px", 
+          background: isSending ? "#999" : "#d32f2f", 
+          color: "white", 
+          border: "none", 
+          borderRadius: "8px",
+          cursor: isSending ? "not-allowed" : "pointer"
+        }}
         onClick={handleSend}
         disabled={isSending}
       >

@@ -1,4 +1,3 @@
-
 // src/NotYourRequest.js
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -16,13 +15,15 @@ const NotYourRequest = () => {
     localStorage.removeItem("loginUserId");
     localStorage.removeItem("lastActiveAt");
 
-    // ✅ クエリで戻り先を保持してログインへ
-    navigate(`/?redirectTo=${encodeURIComponent(redirectTo)}`, { replace: true });
+    // ✅ Login.js は location.state?.redirectTo を見るので、stateで渡す
+    navigate("/", { replace: true, state: { redirectTo } });
   };
 
   return (
     <div style={{ padding: "20px", textAlign: "center" }}>
-      <h3 style={{ marginBottom: "10px" }}>この請求リンクはあなた宛てではありません</h3>
+      <h3 style={{ marginBottom: "10px" }}>
+        この請求リンクはあなた宛てではありません
+      </h3>
 
       <div
         style={{
@@ -41,8 +42,12 @@ const NotYourRequest = () => {
           ⚠️ 支払いできません
         </div>
 
-        <div>このリンクの支払者：<b>{payerName || "（不明）"}</b></div>
-        <div>請求者：<b>{requesterName || "（不明）"}</b></div>
+        <div>
+          このリンクの支払者：<b>{payerName || "（不明）"}</b>
+        </div>
+        <div>
+          請求者：<b>{requesterName || "（不明）"}</b>
+        </div>
 
         <div style={{ marginTop: "8px", fontSize: "13px" }}>
           正しいアカウントでログインし直してください。

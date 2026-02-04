@@ -13,6 +13,8 @@ import RequestComplete from "./RequestComplete";
 import PayRequest from "./PayRequest";
 import TransactionHistory from "./TransactionHistory";
 import BalanceHistory from "./BalanceHistory"; // ★追加
+import NotYourRequest from "./NotYourRequest"; // ★追加
+import RequestList from "./RequestList";
 
 function Routers() {
   const [loginUser, setLoginUser] = useState(null);
@@ -135,7 +137,7 @@ function Routers() {
           }
         />
 
-        {/* ★追加: 残高履歴画面 (ログイン必須) */}
+        {/* 残高履歴画面 (ログイン必須) */}
         <Route
           path="/balance"
           element={
@@ -146,6 +148,11 @@ function Routers() {
             )
           }
         />
+
+        {/* ★追加: この請求リンクはあなた宛てではありません */}
+        <Route path="/notyourrequest" element={<NotYourRequest />} />
+
+        <Route path="/requestlist" element={<RequestList loginUser={loginUser} />} />
       </Routes>
     </BrowserRouter>
   );

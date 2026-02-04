@@ -1,85 +1,138 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+// src/CreateRequest.js
+import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import "./App.css";
 import "./CreateRequest.css";
 
 const CreateRequest = ({ loginUser }) => {
   const navigate = useNavigate();
-  const { state } = useLocation();
-  // ★ RecipientListから渡された相手の情報を受け取る
-  const selectedUser = state?.selectedUser; 
 
+  // 金額は文字列で持つ（入力制御しやすい）
   const [amount, setAmount] = useState("");
+  const [amountError, setAmountError] = useState("");
   const [message, setMessage] = useState("");
 
-  const handleCreate = async () => {
-    if (!amount) {
-      alert("金額を入力してください");
+  // 残高（数値化しておく）
+  const balance = useMemo(() => Number(loginUser?.balance || 0), [loginUser]);
+
+  // 半角数字のみ許可（空は許可）
+  const handleAmountChange = (e) => {
+    const value = e.target.value;
+
+    // 空欄にできないと不便なので許可
+    if (value === "") {
+      setAmount("");
+      setAmountError("1円以上の半角数字で入力してください");
       return;
     }
 
-    // 1. 保存するデータの準備
+    // 半角数字以外（全角・マイナス・小数・e・文字）を弾く
+    if (!/^[0-9]+$/.test(value)) {
+      return; // 反映しない
+    }
+
+    const n = Number(value);
+
+    if (!Number.isInteger(n) || n < 1) {
+      setAmountError("1円以上の半角数字で入力してください");
+    } else if (n > balance) {
+      // もし「残高制限したくない」なら、この分岐は消せばOK（機能は残るが制約が外れる）
+      setAmountError("残高を超えています");
+    } else {
+      setAmountError("");
+    }
+
+    setAmount(value);
+  };
+
+  const handleCreate = async () => {
+    if (!loginUser) {
+      alert("ログイン情報が取得できません。一度トップに戻ってください。");
+      return;
+    }
+
+    // ★最終防衛ライン（ここ超重要）
+    const n = Number(amount);
+    if (!Number.isInteger(n) || n < 1) {
+      alert("請求金額は1円以上の半角数字で入力してください。");
+      return;
+    }
+    if (n > balance) {
+      alert("残高を超えています。");
+      return;
+    }
+
     const requestData = {
       requesterId: loginUser.id,
       requesterName: loginUser.name,
-      targetId: selectedUser?.id || "なし", // 相手のID
-      targetName: selectedUser?.name || "宛先指定なし", // 相手の名前
-      amount: Number(amount),
+      amount: n,
       message,
-      createdAt: new Date().toISOString(),
-      status: "pending", // ★初期状態は「未払い」
-      payerId: null      // ★支払人はまだいない
+      createdAt: new Date().toLocaleString("ja-JP"),
     };
 
     try {
-      // 2. db.json の requests に保存 (POST)
-      const response = await fetch("http://localhost:3010/requests", {
+      // db.json に保存（機能はそのまま）
+      await fetch("http://localhost:3010/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify(requestData),
       });
 
-      // 3. 保存されたデータ（自動発行されたid付き）を受け取る
-      const newRequest = await response.json();
-
-      // 4. URLに requestId を含めてリンクを作成
-      // これにより、支払う側が「どの請求に対する支払いか」を特定できるようになります
-      const link = `/payrequest?requesterId=${loginUser.id}&from=${encodeURIComponent(
-        loginUser.name
-      )}&amount=${amount}&message=${encodeURIComponent(message)}&requestId=${newRequest.id}`;
+      // ★請求リンク生成：requesterId を追加（これが重要）（機能はそのまま）
+      const link = `/payrequest?requesterId=${encodeURIComponent(
+        loginUser.id
+      )}&from=${encodeURIComponent(loginUser.name)}&amount=${encodeURIComponent(
+        String(n)
+      )}&message=${encodeURIComponent(message)}`;
 
       navigate("/requestcomplete", {
-        state: { link }
+        state: { link },
       });
     } catch (err) {
+      alert("請求の保存に失敗しました");
       console.error(err);
-      alert("保存に失敗しました");
     }
   };
+
+  if (!loginUser) return <div className="page">読み込み中...</div>;
+
+  const isCreateDisabled = !amount || !!amountError;
 
   return (
     <div className="page">
       <div className="screen">
         <h2 className="screen-title">請求リンクの作成</h2>
 
-        {/* ★ 修正：誰に請求するかを表示するエリアを追加 */}
-        {selectedUser && (
-          <div style={{ textAlign: 'center', marginBottom: '20px', padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-            <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>請求先</p>
-            <img src={selectedUser.icon} style={{ width: '50px', borderRadius: '50%', margin: '5px 0' }} alt="" />
-            <p style={{ fontWeight: 'bold', margin: 0 }}>{selectedUser.name} 様</p>
-          </div>
-        )}
-
         <div className="form-group">
           <label className="input-label">請求金額</label>
+
+          {/* ★ type=number をやめて、text + 入力制御で半角数字のみ */}
           <input
-            type="number"
+            type="text"
             className="text-input"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={handleAmountChange}
             placeholder="3000"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            style={{
+              borderColor: amountError ? "red" : undefined,
+            }}
           />
           <span className="currency-unit">円</span>
+
+          {amountError && (
+            <div
+              style={{
+                color: "red",
+                fontSize: "12px",
+                marginTop: "6px",
+                textAlign: "left",
+              }}
+            >
+              {amountError}
+            </div>
+          )}
         </div>
 
         <div className="form-group">
@@ -93,7 +146,15 @@ const CreateRequest = ({ loginUser }) => {
           />
         </div>
 
-        <button onClick={handleCreate} className="create-link-btn">
+        <button
+          onClick={handleCreate}
+          className="create-link-btn"
+          disabled={isCreateDisabled}
+          style={{
+            opacity: isCreateDisabled ? 0.6 : 1,
+            cursor: isCreateDisabled ? "not-allowed" : "pointer",
+          }}
+        >
           リンクを作成
         </button>
 

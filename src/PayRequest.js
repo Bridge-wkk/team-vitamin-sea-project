@@ -30,7 +30,7 @@ const PayRequest = () => {
 
   return (
     <div style={{ padding: "20px", textAlign: "center" }}>
-      <button onClick={() => navigate("/")}>＜ 戻る</button>
+      <button onClick={() => navigate("/home")}>＜ 戻る</button>
 
       <h3>{requesterName} さんからの請求</h3>
 

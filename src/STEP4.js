@@ -23,6 +23,7 @@ function Step4Screen({ loginUser }) {
     senderName: loginUser.name,
     receiverId: selectedUser.id,
     receiverName: selectedUser.name,
+    receiverIcon: selectedUser.icon, // ★ ここにアイコン情報を追加
     amount: sendAmount,
     message: message,
     date: new Date().toLocaleString('ja-JP'), // 日本時間で記録

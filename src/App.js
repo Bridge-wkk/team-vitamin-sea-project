@@ -104,7 +104,7 @@ export default function App({ loginUser }) {
         >
           <img className="actionIcon" src="/images/history.png" alt="" />
           <span className="actionText" style={{ color: '#333' }}> 
-            請求状況を確認する
+            請求・送金状況を確認する
           </span>
         </button>
       </div>

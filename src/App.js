@@ -93,7 +93,7 @@ export default function App({ loginUser }) {
           style={{ backgroundColor: '#fff5f5', border: '1px solid #ffcccc', marginTop: '10px' }}
           type="button"
         >
-          <img className="actionIcon" src="/images/notification.png" alt="" />
+          <img className="actionIcon" src="/images/bikkurimark.png" alt="" />
           <span className="actionText" style={{ color: '#D11C1C', fontWeight: 'bold' }}>
             支払いリクエストが届いています
           </span>

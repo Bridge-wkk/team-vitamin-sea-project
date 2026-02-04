@@ -1,22 +1,28 @@
-// src/CreateRequest.js
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "./App.css";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./CreateRequest.css";
 
 const CreateRequest = ({ loginUser }) => {
   const navigate = useNavigate();
+  const { state } = useLocation();
+  // ★ RecipientListから渡された相手の情報を受け取る
+  const selectedUser = state?.selectedUser; 
 
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
 
   const handleCreate = async () => {
-    if (!amount) return;
+    if (!amount) {
+      alert("金額を入力してください");
+      return;
+    }
 
     // 1. 保存するデータの準備
     const requestData = {
       requesterId: loginUser.id,
       requesterName: loginUser.name,
+      targetId: selectedUser?.id || "なし", // 相手のID
+      targetName: selectedUser?.name || "宛先指定なし", // 相手の名前
       amount: Number(amount),
       message,
       createdAt: new Date().toISOString(),
@@ -44,10 +50,9 @@ const CreateRequest = ({ loginUser }) => {
       navigate("/requestcomplete", {
         state: { link }
       });
-
     } catch (err) {
-      alert("請求の保存に失敗しました");
       console.error(err);
+      alert("保存に失敗しました");
     }
   };
 
@@ -55,6 +60,15 @@ const CreateRequest = ({ loginUser }) => {
     <div className="page">
       <div className="screen">
         <h2 className="screen-title">請求リンクの作成</h2>
+
+        {/* ★ 修正：誰に請求するかを表示するエリアを追加 */}
+        {selectedUser && (
+          <div style={{ textAlign: 'center', marginBottom: '20px', padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+            <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>請求先</p>
+            <img src={selectedUser.icon} style={{ width: '50px', borderRadius: '50%', margin: '5px 0' }} alt="" />
+            <p style={{ fontWeight: 'bold', margin: 0 }}>{selectedUser.name} 様</p>
+          </div>
+        )}
 
         <div className="form-group">
           <label className="input-label">請求金額</label>

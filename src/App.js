@@ -81,7 +81,8 @@ export default function App({ loginUser }) {
           <span className="actionText">送金する</span>
         </button>
 
-        <button onClick={() => navigate("/createrequest")} className="actionButton" type="button">
+        <button onClick={() => navigate("/recipientlist", { state: { mode: "request" } })} 
+          className="actionButton" type="button">
           <img className="actionIcon" src="/images/approval.png" alt="" />
           <span className="actionText">請求する</span>
         </button>

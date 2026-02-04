@@ -31,14 +31,12 @@ const BalanceHistory = ({ loginUser }) => {
 
         const sortedDesc = myData.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        // 最新の残高から過去へ逆算
         let currentCalcBalance = latestBalance;
         
         const historyWithBalance = sortedDesc.map((item) => {
           const isPayment = item.senderId === loginUser.id;
           const amount = Number(item.amount);
           
-          // その時点の残高（マイナスも許容してそのまま表示）
           const balanceAtThatTime = currentCalcBalance;
 
           if (isPayment) currentCalcBalance += amount; 
@@ -89,7 +87,6 @@ const BalanceHistory = ({ loginUser }) => {
       }
       const group = groups.get(tx.dateKey);
       
-      // その日の最初のデータ（＝時系列で最も新しいデータ）の残高を、その日の最終残高とする
       if (group.transactions.length === 0) {
         group.closingBalance = tx.balance;
       }
@@ -146,20 +143,35 @@ const BalanceHistory = ({ loginUser }) => {
     return null;
   };
 
-  const chartWidth = Math.max(window.innerWidth - 40, graphData.length * 50);
+  // グラフ幅の調整（全画面表示用に少しゆとりを持たせる）
+  const chartWidth = Math.max(window.innerWidth - 60, graphData.length * 60);
 
   return (
     <div style={{ backgroundColor: "#f9f9f9", minHeight: "100vh", fontFamily: "sans-serif", paddingBottom: "40px" }}>
+      
       {/* ヘッダー */}
-      <div style={{ backgroundColor: "#fff", padding: "15px", display: "flex", alignItems: "center", borderBottom: "1px solid #eee", position: "sticky", top: 0, zIndex: 10 }}>
-        <button onClick={() => navigate("/home")} style={{ background: "none", border: "none", fontSize: "18px", cursor: "pointer", color: "#007bff" }}>
-          ＜
+      <div style={{ 
+        backgroundColor: "#fff", padding: "15px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", 
+        borderBottom: "1px solid #eee", position: "sticky", top: 0, zIndex: 10 
+      }}>
+        <button 
+          onClick={() => navigate("/home")} 
+          style={{ 
+            background: "none", border: "none", fontSize: "16px", cursor: "pointer", 
+            color: "#333", fontWeight: "bold", padding: 0
+          }}
+        >
+          ＜ 戻る
         </button>
-        <h2 style={{ fontSize: "16px", margin: "0 auto", fontWeight: "bold", color: "#333" }}>残高推移</h2>
-        <div style={{ width: "20px" }}></div>
+        
+        <h2 style={{ fontSize: "16px", margin: 0, fontWeight: "bold", color: "#333", position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+          残高推移
+        </h2>
+        
+        <div style={{ width: "60px" }}></div>
       </div>
 
-      <div style={{ padding: "20px" }}>
+      <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}> {/* PCで見やすいように最大幅を設定 */}
         
         {/* 現在の残高 */}
         <div style={{ textAlign: "center", marginBottom: "25px", marginTop: "10px" }}>
@@ -213,7 +225,7 @@ const BalanceHistory = ({ loginUser }) => {
           style={{ 
             backgroundColor: "#fff", 
             borderRadius: "16px", 
-            height: "240px", 
+            height: "280px", 
             marginBottom: "30px", 
             boxShadow: "0 4px 20px rgba(0,0,0,0.03)", 
             overflowX: "auto", 
@@ -224,7 +236,7 @@ const BalanceHistory = ({ loginUser }) => {
           {graphData.length > 0 ? (
             <div style={{ width: `${chartWidth}px`, height: "100%" }}>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={graphData} margin={{ top: 10, right: 20, bottom: 5, left: 0 }}>
+                <LineChart data={graphData} margin={{ top: 10, right: 30, bottom: 5, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                   <XAxis 
                     dataKey="dateLabel" 
@@ -240,12 +252,12 @@ const BalanceHistory = ({ loginUser }) => {
                     axisLine={false} 
                     tickLine={false} 
                     domain={['auto', 'auto']} 
-                    tickFormatter={(val) => `${(val/10000).toFixed(0)}万`} // 簡略表示ですっきりさせる
+                    tickFormatter={(val) => `${(val/10000).toFixed(0)}万`} 
                   />
                   <Tooltip 
                     content={<CustomTooltip />} 
                     cursor={{ stroke: '#ddd', strokeWidth: 1, strokeDasharray: '4 4' }} 
-                    position={{ y: -40 }} // ツールチップをグラフの上に逃がす
+                    position={{ y: -40 }} 
                   />
                   <Line 
                     type="monotone" dataKey="balance" stroke="#007bff" strokeWidth={2.5} dot={{ r: 3, fill: "#fff", stroke: "#007bff", strokeWidth: 2 }} 
@@ -261,8 +273,8 @@ const BalanceHistory = ({ loginUser }) => {
           )}
         </div>
 
-        {/* 明細リスト（残高明細形式・スッキリ版） */}
-        <h3 style={{ fontSize: "13px", color: "#888", marginBottom: "12px", marginLeft: "4px" }}>明細</h3>
+        {/* 明細リスト */}
+        <h3 style={{ fontSize: "13px", color: "#888", marginBottom: "12px", marginLeft: "4px" }}>残高明細</h3>
         
         {groupedList.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px", color: "#aaa", fontSize: "13px" }}>
@@ -271,7 +283,7 @@ const BalanceHistory = ({ loginUser }) => {
         ) : (
           groupedList.map((group) => (
             <div key={group.dateKey} style={{ marginBottom: "24px" }}>
-              {/* 日付ヘッダー（シンプル化：日付と変動計のみ） */}
+              {/* 日付ヘッダー */}
               <div style={{ 
                 display: "flex", justifyContent: "space-between", alignItems: "center", 
                 marginBottom: "8px", padding: "0 4px"
@@ -307,15 +319,13 @@ const BalanceHistory = ({ loginUser }) => {
                        </div>
                     </div>
 
-                    {/* 右側：金額と残高（縦並びで整理） */}
+                    {/* 右側：金額と残高 */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
-                       {/* 変動額 */}
                        <div style={{ fontSize: "15px", fontWeight: "bold", color: tx.isPayment ? "#D11C1C" : "#28a745" }}>
                          {tx.isPayment ? "-" : "+"}{tx.amount.toLocaleString()}
                        </div>
-                       {/* その時点の残高（控えめな色で表示） */}
                        <div style={{ fontSize: "11px", color: "#aaa" }}>
-                         残高: {tx.balance.toLocaleString()}
+                         残: {tx.balance.toLocaleString()}
                        </div>
                     </div>
                   </div>

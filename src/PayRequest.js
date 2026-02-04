@@ -1,30 +1,66 @@
-import React from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+// src/PayRequest.js
+import React, { useEffect, useState } from "react";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 
-const PayRequest = () => {
+const PayRequest = ({ loginUser }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [params] = useSearchParams();
 
-  const requesterName = params.get("from") ?? "";
+  const requesterId = params.get("requesterId") ?? "";
+  const requesterNameFromQuery = params.get("from") ?? "";
   const amountStr = params.get("amount") ?? "0";
   const amount = Number(amountStr);
   const message = params.get("message") ?? "";
 
-  // Step6Screen が要求する形に合わせて用意
-  // （本来は icon もユーザー情報から取る）
-  const selectedUser = {
-    name: requesterName,
-    icon: "https://placehold.jp/150x150.png" // 仮画像
-  };
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  // 1) 未ログインならログインへ飛ばす（戻り先付き）
+  useEffect(() => {
+    if (!loginUser) {
+      navigate("/", {
+        replace: true,
+        state: { redirectTo: location.pathname + location.search },
+      });
+    }
+  }, [loginUser, navigate, location.pathname, location.search]);
+
+  // 2) ログイン後：requesterId から friends を取得して icon を決める
+  useEffect(() => {
+    if (!loginUser) return;
+
+    // requesterId が無い古いリンク対策（最低限表示はできるようにする）
+    if (!requesterId) {
+      setSelectedUser({
+        name: requesterNameFromQuery,
+        icon: "/images/human1.png", // フォールバック（適宜変更OK）
+      });
+      return;
+    }
+
+    fetch(`http://localhost:3010/friends/${requesterId}`)
+      .then((res) => res.json())
+      .then((friend) => {
+        setSelectedUser({
+          name: friend?.name ?? requesterNameFromQuery,
+          icon: friend?.icon ?? "/images/human1.png",
+        });
+      })
+      .catch((err) => {
+        console.error("friends取得エラー:", err);
+        setSelectedUser({
+          name: requesterNameFromQuery,
+          icon: "/images/human1.png",
+        });
+      });
+  }, [loginUser, requesterId, requesterNameFromQuery]);
+
+  // loginUser と selectedUser が揃うまで描画しない
+  if (!loginUser || !selectedUser) return null;
 
   const handleSend = () => {
-    // 送金完了画面へ遷移（stateで渡す）
     navigate("/step6", {
-      state: {
-        selectedUser,
-        amount,
-        message
-      }
+      state: { selectedUser, amount, message },
     });
   };
 
@@ -32,7 +68,21 @@ const PayRequest = () => {
     <div style={{ padding: "20px", textAlign: "center" }}>
       <button onClick={() => navigate("/home")}>＜ 戻る</button>
 
-      <h3>{requesterName} さんからの請求</h3>
+      <h3>{selectedUser.name} さんからの請求</h3>
+
+      {/* ★相手のアイコン（DB由来） */}
+      <img
+        src={selectedUser.icon}
+        alt=""
+        style={{
+          width: "70px",
+          height: "70px",
+          borderRadius: "50%",
+          objectFit: "cover",
+          marginTop: "12px",
+          marginBottom: "12px",
+        }}
+      />
 
       <p style={{ fontSize: "20px", fontWeight: "bold" }}>
         {Number.isFinite(amount) ? amount.toLocaleString() : "0"} 円
@@ -48,7 +98,7 @@ const PayRequest = () => {
           color: "#fff",
           border: "none",
           borderRadius: "20px",
-          cursor: "pointer"
+          cursor: "pointer",
         }}
         onClick={handleSend}
       >

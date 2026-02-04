@@ -17,36 +17,44 @@ const CreateRequest = ({ loginUser }) => {
       return;
     }
 
-    // ★ 保存するデータを作成
+    // 1. 保存するデータの準備
     const requestData = {
       requesterId: loginUser.id,
       requesterName: loginUser.name,
       targetId: selectedUser?.id || "なし", // 相手のID
       targetName: selectedUser?.name || "宛先指定なし", // 相手の名前
       amount: Number(amount),
-      message: message,
-      createdAt: new Date().toLocaleString('ja-JP')
+      message,
+      createdAt: new Date().toISOString(),
+      status: "pending", // ★初期状態は「未払い」
+      payerId: null      // ★支払人はまだいない
     };
 
     try {
-      // db.json に保存
-      await fetch("http://localhost:3010/requests", {
+      // 2. db.json の requests に保存 (POST)
+      const response = await fetch("http://localhost:3010/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify(requestData)
       });
 
-      // 完了画面へ移動し、作成したリンクを渡す
-      const link = `/payrequest?requesterId=${loginUser.id}&amount=${amount}`;
-      navigate("/requestcomplete", { state: { link } });
+      // 3. 保存されたデータ（自動発行されたid付き）を受け取る
+      const newRequest = await response.json();
 
+      // 4. URLに requestId を含めてリンクを作成
+      // これにより、支払う側が「どの請求に対する支払いか」を特定できるようになります
+      const link = `/payrequest?requesterId=${loginUser.id}&from=${encodeURIComponent(
+        loginUser.name
+      )}&amount=${amount}&message=${encodeURIComponent(message)}&requestId=${newRequest.id}`;
+
+      navigate("/requestcomplete", {
+        state: { link }
+      });
     } catch (err) {
       console.error(err);
       alert("保存に失敗しました");
     }
   };
-
-  if (!loginUser) return <div className="page">読み込み中...</div>;
 
   return (
     <div className="page">

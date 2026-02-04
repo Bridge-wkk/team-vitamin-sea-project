@@ -25,7 +25,7 @@ const TransactionHistory = ({ loginUser }) => {
       </div>
 
       <div style={{ padding: '15px' }}>
-        <h3 style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>送金・請求履歴</h3>
+        <h3 style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>請求履歴</h3>
         
         {myRequests.map((req) => (
           <div key={req.id} style={{ 

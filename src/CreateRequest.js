@@ -22,7 +22,9 @@ const CreateRequest = ({ loginUser }) => {
       requesterName: loginUser.name,
       amount: Number(amount),
       message,
-      createdAt: new Date().toISOString(),
+
+=======
+      createdAt: new Date().toLocaleString('ja-JP')
     };
 
     try {

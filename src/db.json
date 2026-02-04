@@ -4,7 +4,7 @@
       "id": "1",
       "name": "サンプル 氏名A",
       "accountNumber": "1111111",
-      "balance": 29961,
+      "balance": 29999,
       "password": "passwordA",
       "icon": "/images/human1.png"
     },
@@ -103,6 +103,26 @@
       "createdAt": "2026-02-04T02:45:58.516Z",
       "status": "paid",
       "payerId": "1"
+    },
+    {
+      "id": "d043",
+      "requesterId": "1",
+      "requesterName": "サンプル 氏名A",
+      "amount": 1,
+      "message": "",
+      "createdAt": "2026-02-04T02:59:23.283Z",
+      "status": "pending",
+      "payerId": null
+    },
+    {
+      "id": "0795",
+      "requesterId": "1",
+      "requesterName": "サンプル 氏名A",
+      "amount": 1,
+      "message": "",
+      "createdAt": "2026-02-04T03:00:14.051Z",
+      "status": "pending",
+      "payerId": null
     }
   ],
   "send1": [
@@ -149,6 +169,18 @@
       "message": "おねがい",
       "date": "2026/2/4 11:46:09",
       "type": "request_payment"
+    },
+    {
+      "id": "1964",
+      "senderId": "1",
+      "senderName": "サンプル 氏名A",
+      "receiverId": "4",
+      "receiverName": "サンプル 氏名D",
+      "receiverIcon": "/images/human4.png",
+      "amount": 1,
+      "message": "1円あげる",
+      "date": "2026/2/4 11:59:03",
+      "type": "transfer"
     }
   ]
 }

@@ -97,7 +97,7 @@ const CreateRequest = ({ loginUser }) => {
           リンクを作成
         </button>
 
-        <button className="back-btn" onClick={() => navigate("/")}>
+        <button className="back-btn" onClick={() => navigate("/home")}>
           トップ画面に戻る
         </button>
       </div>

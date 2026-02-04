@@ -12,6 +12,7 @@ import CreateRequest from "./CreateRequest";
 import RequestComplete from "./RequestComplete";
 import PayRequest from "./PayRequest";
 import TransactionHistory from "./TransactionHistory";
+import RequestList from "./RequestList";
 
 function Routers() {
   const [loginUser, setLoginUser] = useState(null);
@@ -133,6 +134,9 @@ function Routers() {
             )
           }
         />
+
+        {/* 請求一覧画面 */}
+        <Route path="/requestlist" element={<RequestList loginUser={loginUser} />} />
       </Routes>
     </BrowserRouter>
   );

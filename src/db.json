@@ -4,7 +4,7 @@
       "id": "1",
       "name": "サンプル 氏名A",
       "accountNumber": "1111111",
-      "balance": 53249,
+      "balance": 43249,
       "password": "passwordA",
       "icon": "/images/human1.png"
     },
@@ -12,7 +12,7 @@
       "id": "2",
       "name": "サンプル 氏名B",
       "accountNumber": "2222222",
-      "balance": 37857,
+      "balance": 47857,
       "password": "passwordB",
       "icon": "/images/human2.png"
     },
@@ -271,10 +271,10 @@
       "senderName": "Fさん",
       "receiverId": "1",
       "receiverName": "自分",
-      "amount": 50000,
+      "amount": 5000,
       "date": "2025/12/10 10:00:00",
       "type": "transfer",
-      "message": "冬のボーナス送金"
+      "message": "冬のお小遣い"
     },
     {
       "id": "mock13",
@@ -319,6 +319,18 @@
       "amount": 11111,
       "message": "aaaa",
       "date": "2026/2/4 15:51:32",
+      "type": "transfer"
+    },
+    {
+      "id": "faac",
+      "senderId": "1",
+      "senderName": "サンプル 氏名A",
+      "receiverId": "2",
+      "receiverName": "サンプル 氏名B",
+      "receiverIcon": "/images/human2.png",
+      "amount": 10000,
+      "message": "",
+      "date": "2026/2/4 16:04:32",
       "type": "transfer"
     }
   ],

@@ -41,7 +41,7 @@ const RequestComplete = () => {
           {copied ? "コピーしました！" : "リンクをコピー"}
         </button>
 
-        <button className="rcBackButton" onClick={() => navigate("/")}>
+        <button className="rcBackButton" onClick={() => navigate("/home")}>
           トップに戻る
         </button>
       </div>

@@ -12,17 +12,16 @@ const PayRequest = ({ loginUser }) => {
   const requesterIdFromQuery = params.get("requesterId") ?? "";
   const requesterNameFromQuery = params.get("from") ?? "";
 
-  // 旧仕様の名残（requestIdがない場合のフォールバック用）
+  // 旧仕様の名残
   const amountStrFromQuery = params.get("amount") ?? "0";
   const messageFromQuery = params.get("message") ?? "";
 
-  const [request, setRequest] = useState(null);      // requestsテーブルの請求データ
-
-  const [selectedUser, setSelectedUser] = useState(null); // 請求者（相手）
-  const [invalidReason, setInvalidReason] = useState(""); // 無効理由
+  const [request, setRequest] = useState(null);      
+  const [selectedUser, setSelectedUser] = useState(null); 
+  const [invalidReason, setInvalidReason] = useState(""); 
   const [isSending, setIsSending] = useState(false);
 
-  // ✅ 表示用：請求額・メッセージ・請求者IDは request から優先的に取る
+  // 表示用データのメモ化
   const amount = useMemo(() => {
     if (request) return Number(request.amount || 0);
     return Number(amountStrFromQuery || 0);
@@ -43,7 +42,7 @@ const PayRequest = ({ loginUser }) => {
     return requesterNameFromQuery || "";
   }, [request, requesterNameFromQuery]);
 
-  // 1) 未ログインならログインへ（戻り先付き）
+  // 1) 未ログインならログインへ
   useEffect(() => {
     if (!loginUser) {
       navigate("/", {
@@ -53,31 +52,29 @@ const PayRequest = ({ loginUser }) => {
     }
   }, [loginUser, navigate, location.pathname, location.search]);
 
-  // 2) requestId があるなら請求データを取得して
-  //    - 支払済みなら無効
-  //    - 支払者(receiverId)がログインユーザーと一致しなければ NotYourRequestへ 
+  // 2) ✅ 修正箇所：fetchのレスポンス定義(res2など)を確実に定義
   useEffect(() => {
     if (!loginUser) return;
 
     (async () => {
       try {
         if (requestId) {
-          // A: 特定のIDが指定されている場合（QRやリンクから）
-          const res = await fetch(`http://localhost:3010/requests/${requestId}`);
-          if (!res.ok) {
+          // A: requestIdがある場合
+          const res1 = await fetch(`http://localhost:3010/requests/${requestId}`);
+          if (!res1.ok) {
             setInvalidReason("この請求は存在しません。");
             return;
           }
-          const data = await res.json();
+          const data = await res1.json();
           if (data.status === "paid") {
             setInvalidReason("この請求はすでに支払い済みです。");
             return;
           }
           setRequest(data);
         } else {
-          // B: ID指定がない場合（ホームのボタンから）→ 自分宛の未払いを1件見つける
-          const res = await fetch(`http://localhost:3010/requests`);
-          const allRequests = await res.json();
+          // B: ホーム画面から来た場合（自動検索）
+          const res2 = await fetch(`http://localhost:3010/requests`);
+          const allRequests = await res2.json(); // ★ ここで res2 が定義されているのでエラーになりません
           const myRequest = allRequests.find(req => 
             req.receiverName === loginUser.name && req.status === "unpaid"
           );
@@ -88,43 +85,14 @@ const PayRequest = ({ loginUser }) => {
             setInvalidReason("支払いが必要なリクエストは見つかりませんでした。");
           }
         }
-
-        const data = await res.json();
-
-        // ✅ 支払済みなら無効化
-        if (data.status === "paid") {
-          setInvalidReason("この請求はすでに支払い済みです。");
-          return;
-        }
-
-        // ✅ 追加：支払者チェック（receiverId）
-        // receiverId が入っている請求は「その人だけが支払える」
-        const receiverId = String(data.receiverId ?? "");
-        const loginId = String(loginUser.id ?? "");
-
-        if (receiverId && receiverId !== loginId) {
-          navigate("/notyourrequest", {
-            replace: true,
-            state: {
-              payerName: data.receiverName, // 本来支払うべき人
-              requesterName: data.requesterName, // 請求者
-              redirectTo: `${location.pathname}${location.search}`, // 正しい人で再ログイン後に戻す先
-            },
-          });
-          return;
-        }
-
-        // ✅ 未払い＆本人なら保持
-        setRequest(data);
-
       } catch (e) {
         console.error("データ取得エラー:", e);
         setInvalidReason("請求情報の取得に失敗しました。");
       }
     })();
-  }, [loginUser, requestId, navigate, location.pathname, location.search]);
+  }, [loginUser, requestId]);
 
-  // 3) 請求者（相手）の情報を取得
+  // 3) 請求者情報の取得
   useEffect(() => {
     if (!loginUser || invalidReason || !requesterId) return;
 
@@ -147,24 +115,14 @@ const PayRequest = ({ loginUser }) => {
       });
   }, [loginUser, invalidReason, requesterId, requesterName]);
 
-  // --- 送金実行処理 ---
+  // 送金実行
   const handleSend = async () => {
     if (!loginUser || !selectedUser || isSending) return;
-
-    if (invalidReason) {
-      alert(invalidReason);
-      return;
-    }
-
-    if (Number(loginUser.balance) < amount) {
-      alert("残高が不足しています");
-      return;
-    }
+    if (invalidReason) { alert(invalidReason); return; }
+    if (Number(loginUser.balance) < amount) { alert("残高が不足しています"); return; }
 
     setIsSending(true);
-
     try {
-      // (A) 自分の残高を減らす
       const myNewBalance = Number(loginUser.balance) - amount;
       await fetch(`http://localhost:3010/friends/${loginUser.id}`, {
         method: "PATCH",
@@ -172,7 +130,6 @@ const PayRequest = ({ loginUser }) => {
         body: JSON.stringify({ balance: myNewBalance }),
       });
 
-      // (B) 相手（請求者）の残高を増やす
       const partnerNewBalance = (Number(selectedUser.balance) || 0) + amount;
       await fetch(`http://localhost:3010/friends/${requesterId}`, {
         method: "PATCH",
@@ -180,13 +137,12 @@ const PayRequest = ({ loginUser }) => {
         body: JSON.stringify({ balance: partnerNewBalance }),
       });
 
-      // (C) 送金履歴(send1)への保存
       const sendData = {
         senderId: loginUser.id,
         senderName: loginUser.name,
         receiverId: requesterId,
         receiverName: selectedUser.name,
-        receiverIcon: selectedUser.icon, // 履歴でアイコンが出るように追加
+        receiverIcon: selectedUser.icon,
         amount: amount,
         message: message,
         date: new Date().toLocaleString("ja-JP"),
@@ -198,7 +154,6 @@ const PayRequest = ({ loginUser }) => {
         body: JSON.stringify(sendData),
       });
 
-      // (D) ✅ 請求データのステータス更新：unpaidをpaidに変更
       if (request?.id) {
         await fetch(`http://localhost:3010/requests/${request.id}`, {
           method: "PATCH",
@@ -211,10 +166,7 @@ const PayRequest = ({ loginUser }) => {
         });
       }
 
-      // 完了画面へ遷移
-      navigate("/step6", {
-        state: { selectedUser, amount, message },
-      });
+      navigate("/step6", { state: { selectedUser, amount, message } });
     } catch (err) {
       console.error("送金エラー", err);
       alert("送金に失敗しました");
@@ -223,10 +175,7 @@ const PayRequest = ({ loginUser }) => {
     }
   };
 
-  // 表示
-  if (!loginUser) {
-    return <div style={{ padding: "20px", textAlign: "center" }}>ログイン画面へ移動しています…</div>;
-  }
+  if (!loginUser) return <div style={{ padding: "20px", textAlign: "center" }}>読み込み中…</div>;
 
   if (invalidReason) {
     return (
@@ -246,34 +195,15 @@ const PayRequest = ({ loginUser }) => {
         ＜ 戻る
       </button>
       <div style={{ clear: "both" }}></div>
-
       <div style={{ marginTop: "30px" }}>
-        <img
-          src={selectedUser.icon}
-          alt=""
-          style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", margin: "12px 0" }}
-        />
+        <img src={selectedUser.icon} alt="" style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", margin: "12px 0" }} />
         <h3>{selectedUser.name} さんからの請求</h3>
       </div>
-
-      <p style={{ fontSize: "28px", fontWeight: "bold", margin: "20px 0" }}>
-        {amount.toLocaleString()} 円
-      </p>
-
-      {message && (
-        <div style={{ backgroundColor: "#f0f7ff", padding: "10px", borderRadius: "8px", display: "inline-block", marginTop: "10px" }}>
-          「{message}」
-        </div>
-      )}
-
+      <p style={{ fontSize: "28px", fontWeight: "bold", margin: "20px 0" }}>{amount.toLocaleString()} 円</p>
+      {message && <div style={{ backgroundColor: "#f0f7ff", padding: "10px", borderRadius: "8px", display: "inline-block", marginTop: "10px" }}>「{message}」</div>}
       <br />
-
       <button
-        style={{
-          marginTop: "40px", padding: "15px 60px", background: isSending ? "#999" : "#d32f2f",
-          color: "#fff", border: "none", borderRadius: "30px", cursor: isSending ? "not-allowed" : "pointer",
-          fontSize: "18px", fontWeight: "bold", opacity: isSending ? 0.7 : 1,
-        }}
+        style={{ marginTop: "40px", padding: "15px 60px", background: isSending ? "#999" : "#d32f2f", color: "#fff", border: "none", borderRadius: "30px", cursor: isSending ? "not-allowed" : "pointer", fontSize: "18px", fontWeight: "bold", opacity: isSending ? 0.7 : 1 }}
         onClick={handleSend}
         disabled={isSending}
       >

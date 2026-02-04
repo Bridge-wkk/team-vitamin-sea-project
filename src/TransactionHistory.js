@@ -29,8 +29,8 @@ const TransactionHistory = ({ loginUser }) => {
       // B. 自分が作成した請求だけを抽出
       const myRequests = requestsData.filter(req => req.requesterId === loginUser.id);
       
-      // C. 自分が実行した送金だけを抽出
-      const mySends = sendsData.filter(send => send.senderId === loginUser.id);
+      // C. 自分が実行した送金 もしくは 受け取り明細（請求によって支払われたものではない）だけを抽出
+      const mySends = sendsData.filter(send => send.senderId === loginUser.id || (send.receiverId===loginUser.id && send.type === "transfer"));
       
       // D. 二つを合体させて、日付の新しい順に並べ替える
       const combined = [...myRequests, ...mySends].sort((a, b) => {
@@ -60,6 +60,7 @@ const TransactionHistory = ({ loginUser }) => {
           // send1由来のデータには type="transfer" や "request_payment" が入っている想定
           // または receiverId があるかどうかで判定してもOK
           const isTransfer = item.senderId === loginUser.id && (item.type === "transfer" || item.type === "request_payment");
+          const isMyReceived = item.receiverId === loginUser.id && item.type === "transfer";
 
           // --- 2. 請求の場合の支払い状態判定 ---
           // statusが"paid"なら支払い済み
@@ -70,6 +71,8 @@ const TransactionHistory = ({ loginUser }) => {
           if (isTransfer) {
             // 送金なら「送った相手(receiverId)」
             targetUser = friendsMap[item.receiverId];
+          } else if (isMyReceived) {
+            targetUser = friendsMap[item.senderId];
           } else if (isPaidRequest) {
             // 支払済みの請求なら「払ってくれた人(payerId)」
             targetUser = friendsMap[item.payerId];
@@ -102,6 +105,14 @@ const TransactionHistory = ({ loginUser }) => {
                     />
                     <div style={{ position: 'absolute', bottom: -2, right: -2, background: '#fff', borderRadius: '50%', fontSize: '12px' }}>✅</div>
                   </div>
+                ) : isMyReceived ? (
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <img 
+                      src={targetUser.icon} 
+                      alt={targetUser.name}
+                      style={{ width: '45px', height: '45px'}} 
+                    />
+                  </div>
                 ) : (
                   // パターンC: 未払いの請求 (封筒アイコン)
                   <div style={{ 
@@ -116,10 +127,14 @@ const TransactionHistory = ({ loginUser }) => {
               {/* --- メインテキストエリア --- */}
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 'bold', fontSize: '15px', color: '#333' }}>
-                  {isTransfer 
-                    ? `${targetUser?.name || '不明なユーザー'} さんへ送金` 
-                    : `${item.receiverName} さんへの請求リクエスト`
+                  {
+                    isTransfer
+                      ? `${targetUser?.name || '不明なユーザー'} さんへ送金`
+                      : isMyReceived
+                        ? `${targetUser?.name || '不明なユーザー'} さんから受取`
+                        : `${item.receiverName} さんへの請求リクエスト`
                   }
+                  
                 </div>
                 <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
                   {new Date(item.createdAt || item.date).toLocaleString()}
@@ -148,7 +163,7 @@ const TransactionHistory = ({ loginUser }) => {
                 <div style={{ marginTop: '4px' }}>
                   {isTransfer ? (
                     <span style={{ fontSize: '11px', color: '#28a745' }}>● 送金完了</span>
-                  ) : (
+                  ) : !isMyReceived ? (
                     <span style={{
                       fontSize: '11px',
                       fontWeight: 'bold',
@@ -159,6 +174,8 @@ const TransactionHistory = ({ loginUser }) => {
                     }}>
                       {isPaidRequest ? "支払済" : "請求中"}
                     </span>
+                  ) : (
+                    <span></span>
                   )}
                 </div>
               </div>

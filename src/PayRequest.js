@@ -1,5 +1,5 @@
 // src/PayRequest.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 
 const PayRequest = ({ loginUser }) => {
@@ -7,21 +7,44 @@ const PayRequest = ({ loginUser }) => {
   const location = useLocation();
   const [params] = useSearchParams();
 
-  // URLパラメータの取得
-  const requestId = params.get("requestId"); // 請求データのID（あれば）
-  const requesterId = params.get("requesterId") ?? "";
+  // URLパラメータ
+  const requestId = params.get("requestId"); // ✅ これが主役
+  const requesterIdFromQuery = params.get("requesterId") ?? "";
   const requesterNameFromQuery = params.get("from") ?? "";
-  const amountStr = params.get("amount") ?? "0";
-  const amount = Number(amountStr);
-  const message = params.get("message") ?? "";
 
-  const [selectedUser, setSelectedUser] = useState(null);
+  // 旧仕様の名残（requestIdがない場合のフォールバック用）
+  const amountStrFromQuery = params.get("amount") ?? "0";
+  const messageFromQuery = params.get("message") ?? "";
 
-  // 1. 未ログイン時のリダイレクト処理（元の場所を記憶）
+  const [request, setRequest] = useState(null);     // requestsテーブルの請求データ
+  const [selectedUser, setSelectedUser] = useState(null); // 請求者（相手）
+  const [invalidReason, setInvalidReason] = useState(""); // 無効理由
+  const [isSending, setIsSending] = useState(false);
+
+  // ✅ 表示用：請求額・メッセージ・請求者IDは request から取る（requestIdがある場合）
+  const amount = useMemo(() => {
+    if (request) return Number(request.amount || 0);
+    return Number(amountStrFromQuery || 0);
+  }, [request, amountStrFromQuery]);
+
+  const message = useMemo(() => {
+    if (request) return request.message || "";
+    return messageFromQuery || "";
+  }, [request, messageFromQuery]);
+
+  const requesterId = useMemo(() => {
+    if (request) return String(request.requesterId ?? "");
+    return String(requesterIdFromQuery ?? "");
+  }, [request, requesterIdFromQuery]);
+
+  const requesterName = useMemo(() => {
+    if (request) return request.requesterName || requesterNameFromQuery || "";
+    return requesterNameFromQuery || "";
+  }, [request, requesterNameFromQuery]);
+
+  // 1) 未ログインならログインへ（戻り先付き）
   useEffect(() => {
     if (!loginUser) {
-      // ✅ Login 側が見ているキーは redirectTo
-      // ✅ pathname だけでなく search（クエリ）も含めるのが超重要
       navigate("/", {
         replace: true,
         state: { redirectTo: `${location.pathname}${location.search}` },
@@ -29,16 +52,52 @@ const PayRequest = ({ loginUser }) => {
     }
   }, [loginUser, navigate, location.pathname, location.search]);
 
-  // 2. 請求者（相手）の情報を取得
+  // 2) requestId があるなら請求データを取得して「支払済みなら無効」
   useEffect(() => {
     if (!loginUser) return;
 
-    // ✅ requesterId がない場合（古いリンクなど）のフォールバック
-    // （元コードだと requestId を見ていたけど、ここは requesterId が正しい）
+    // requestId がない場合は旧仕様扱い（フォールバック）
+    if (!requestId) {
+      setRequest(null);
+      return;
+    }
+
+    (async () => {
+      try {
+        const res = await fetch(`http://localhost:3010/requests/${requestId}`);
+        if (!res.ok) {
+          setInvalidReason("この請求は存在しません。");
+          return;
+        }
+
+        const data = await res.json();
+
+        // ✅ 支払済みなら無効化
+        if (data.status === "paid") {
+          setInvalidReason("この請求はすでに支払い済みです。");
+          return;
+        }
+
+        // ✅ 未払いなら保持
+        setRequest(data);
+      } catch (e) {
+        console.error("requests取得エラー:", e);
+        setInvalidReason("請求情報の取得に失敗しました。");
+      }
+    })();
+  }, [loginUser, requestId]);
+
+  // 3) 請求者（相手）の情報を取得
+  useEffect(() => {
+    if (!loginUser) return;
+    if (invalidReason) return;
+
+    // requesterId がない（古いリンクなど）のフォールバック
     if (!requesterId) {
       setSelectedUser({
-        name: requesterNameFromQuery,
+        name: requesterName || "不明",
         icon: "/images/human1.png",
+        balance: 0,
       });
       return;
     }
@@ -48,28 +107,44 @@ const PayRequest = ({ loginUser }) => {
       .then((friend) => {
         setSelectedUser({
           ...friend,
-          name: friend.name || requesterNameFromQuery,
+          name: friend.name || requesterName || "不明",
           icon: friend.icon || "/images/human1.png",
         });
       })
       .catch((err) => {
         console.error("friends取得エラー:", err);
         setSelectedUser({
-          name: requesterNameFromQuery,
+          name: requesterName || "不明",
           icon: "/images/human1.png",
+          balance: 0,
         });
       });
-  }, [loginUser, requesterId, requesterNameFromQuery]);
+  }, [loginUser, invalidReason, requesterId, requesterName]);
 
   // --- 送金実行処理 ---
   const handleSend = async () => {
     if (!loginUser || !selectedUser) return;
+    if (isSending) return;
+
+    // ✅ 無効なら絶対に送金させない（最終防衛ライン）
+    if (invalidReason) {
+      alert(invalidReason);
+      return;
+    }
+
+    // ✅ requestId があるなら request を必須にする（改ざん防止）
+    if (requestId && !request) {
+      alert("請求情報が読み込めませんでした。もう一度開き直してください。");
+      return;
+    }
 
     // 残高不足チェック
     if (Number(loginUser.balance) < amount) {
       alert("残高が不足しています");
       return;
     }
+
+    setIsSending(true);
 
     try {
       // (A) 自分の残高を減らす
@@ -105,7 +180,7 @@ const PayRequest = ({ loginUser }) => {
         body: JSON.stringify(sendData),
       });
 
-      // (D) 請求データのステータス更新（requestIdがある時だけ）
+      // (D) ✅ 請求データのステータス更新：これでリンク無効化が成立
       if (requestId) {
         await fetch(`http://localhost:3010/requests/${requestId}`, {
           method: "PATCH",
@@ -113,6 +188,7 @@ const PayRequest = ({ loginUser }) => {
           body: JSON.stringify({
             status: "paid",
             payerId: loginUser.id,
+            paidAt: new Date().toLocaleString("ja-JP"),
           }),
         });
       }
@@ -124,11 +200,32 @@ const PayRequest = ({ loginUser }) => {
     } catch (err) {
       console.error("送金エラー", err);
       alert("送金に失敗しました");
+    } finally {
+      setIsSending(false);
     }
   };
 
-  // データ読み込み中は何も表示しない
-  if (!loginUser || !selectedUser) return null;
+  // 表示
+  if (!loginUser) {
+    return (
+      <div style={{ padding: "20px", textAlign: "center" }}>
+        ログイン画面へ移動しています…
+      </div>
+    );
+  }
+
+  // ✅ 無効リンク表示（支払済み/存在しない等）
+  if (invalidReason) {
+    return (
+      <div style={{ padding: "20px", textAlign: "center" }}>
+        <h3>この請求リンクは無効です</h3>
+        <p>{invalidReason}</p>
+        <button onClick={() => navigate("/home")}>トップへ戻る</button>
+      </div>
+    );
+  }
+
+  if (!selectedUser) return null;
 
   return (
     <div style={{ padding: "20px", textAlign: "center" }}>
@@ -176,17 +273,19 @@ const PayRequest = ({ loginUser }) => {
         style={{
           marginTop: "30px",
           padding: "12px 40px",
-          background: "#d32f2f",
+          background: isSending ? "#999" : "#d32f2f",
           color: "#fff",
           border: "none",
           borderRadius: "20px",
-          cursor: "pointer",
+          cursor: isSending ? "not-allowed" : "pointer",
           fontSize: "16px",
           fontWeight: "bold",
+          opacity: isSending ? 0.7 : 1,
         }}
         onClick={handleSend}
+        disabled={isSending}
       >
-        送金する
+        {isSending ? "送金中..." : "送金する"}
       </button>
     </div>
   );

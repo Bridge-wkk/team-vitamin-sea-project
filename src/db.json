@@ -82,6 +82,7 @@
       "senderName": "サンプル 氏名A",
       "receiverId": "2",
       "receiverName": "サンプル 氏名B",
+      "receiverIcon": "/images/human2.png",
       "amount": 1000,
       "message": "テスト送金です",
       "date": "2026/02/04 10:50:00",

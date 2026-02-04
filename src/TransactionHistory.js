@@ -21,11 +21,11 @@ const TransactionHistory = ({ loginUser }) => {
       {/* ヘッダー */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '15px', borderBottom: '1px solid #ddd' }}>
         <button onClick={() => navigate("/")} style={{ background: 'none', border: 'none', fontSize: '18px' }}>＜ 戻る</button>
-        <h2 style={{ fontSize: '17px', margin: '0 auto' }}>請求・送金履歴</h2>
+        <h2 style={{ fontSize: '17px', margin: '0 auto' }}>請求状況</h2>
       </div>
 
       <div style={{ padding: '15px' }}>
-        <h3 style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>送金・請求履歴</h3>
+        <h3 style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>請求履歴</h3>
         
         {myRequests.map((req) => (
           <div key={req.id} style={{ 

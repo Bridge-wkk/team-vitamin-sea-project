@@ -7,9 +7,9 @@ export default function App({ loginUser }) {
   const navigate = useNavigate();
   const [currentBalance, setCurrentBalance] = React.useState(loginUser ? loginUser.balance : 0);
 
-  // ★ 他の人が追加した機能：一週間経過した「未払い」の請求データを保持する
+  // ★ 支払い期限超過（一週間以上）の請求データを保持
   const [urgentRequest, setUrgentRequest] = React.useState(null);
-  // ★ 他の人が追加した機能：支払いリクエストボタンを表示するかどうかの判定
+  // ★ 未払い請求がある時だけボタンを表示するための判定
   const [hasPendingRequest, setHasPendingRequest] = React.useState(false);
 
   // ログアウト処理
@@ -27,19 +27,19 @@ export default function App({ loginUser }) {
         .then(data => setCurrentBalance(Number(data.balance)))
         .catch(err => console.error("残高取得エラー:", err));
 
-      // 2. 請求データのチェック（一週間以上の未払い判定）
+      // 2. 請求データのチェック（未払い判定 & 期限超過判定）
       fetch(`http://localhost:3010/requests`)
         .then(res => res.json())
         .then(allRequests => {
           const now = new Date();
-          const oneWeekMs = 7 * 24 * 60 * 60 * 1000; // 7日間をミリ秒で計算
+          const oneWeekMs = 7 * 24 * 60 * 60 * 1000; // 7日間
 
           // 自分宛かつステータスが "unpaid" のものを抽出
           const myUnpaidRequests = allRequests.filter(req =>
             req.receiverName === loginUser.name && req.status === "unpaid"
           );
 
-          // 1件でも未払いがあれば、通常の「リクエスト届いています」ボタンを出す準備
+          // 未払いが1件でもあれば、ホーム画面の通知ボタンを出す
           setHasPendingRequest(myUnpaidRequests.length > 0);
 
           // その中で、作成から一週間（7日）以上経っているものを探す
@@ -48,17 +48,17 @@ export default function App({ loginUser }) {
             return (now - requestDate) > oneWeekMs;
           });
 
-          // 緊急のものが見つかった場合、ポップアップを表示し音を鳴らす
+          // 緊急のものがあればポップアップを表示し音を鳴らす
           if (urgent) {
             setUrgentRequest(urgent);
             const audio = new Audio('https://actions.google.com/google_assistant/notifications/emergency_alert.mp3');
-            audio.play().catch(e => console.log("ブラウザの制限により、ユーザーが画面を触るまで音は鳴りません"));
+            audio.play().catch(e => console.log("音声再生にはユーザー操作が必要です"));
           }
         });
     }
   }, [loginUser]);
 
-  // ガード処理
+  // ガード処理：ログイン情報がない場合
   if (!loginUser) {
     return (
       <div className="page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -81,69 +81,49 @@ export default function App({ loginUser }) {
           <button
             onClick={handleLogout}
             style={{ 
-              fontSize: '11px', 
-              padding: '4px 8px', 
-              backgroundColor: '#f0f0f0', 
-              border: '1px solid #ccc', 
-              borderRadius: '4px', 
-              cursor: 'pointer', 
-              color: '#666' 
+              fontSize: '11px', padding: '4px 8px', backgroundColor: '#f0f0f0', 
+              border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', color: '#666' 
             }}
           >
             ログアウト
           </button>
         </div>
 
-        {/* 口座番号 (横のボタンは削除済み) */}
+        {/* 口座情報 */}
         <div className="subRow" style={{ marginTop: '20px' }}>
           <div className="subLeft">口座番号：{loginUser.accountNumber}</div>
         </div>
 
-        {/* ★【修正箇所】残高カード：クリックで /balance へ遷移 & デザイン調整 */}
+        {/* 残高カード：クリックでグラフ画面（/balance）へ遷移 */}
         <button 
           className="balanceCard" 
           type="button" 
           onClick={() => navigate("/balance")} 
           style={{ 
-            cursor: "pointer",
-            display: "flex", 
-            justifyContent: "space-between", // 左の文字群と右の矢印を離す
-            alignItems: "center",            // 上下中央揃え
-            textAlign: "left",
-            padding: "15px 20px"             // 余白を調整して見やすく
+            cursor: "pointer", display: "flex", justifyContent: "space-between", 
+            alignItems: "center", textAlign: "left", padding: "15px 20px" 
           }}
         >
-          {/* 左側：ラベルと金額 */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-            <span style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>
-              残高
-            </span>
+            <span style={{ fontSize: "12px", color: "#666", marginBottom: "4px" }}>残高</span>
             <div className="balanceAmount">
               {currentBalance.toLocaleString()}円
             </div>
           </div>
-
-          {/* 右側：矢印 (サイズ調整済み) */}
           <img 
             className="chevron" 
             src="/images/chevron-right.png" 
             alt="" 
-            style={{ 
-              width: "16px",       // サイズを小さく固定
-              height: "16px",      // サイズを小さく固定
-              opacity: 0.4,        // 少し薄くして目立ちすぎないように
-              objectFit: "contain" // 縦横比を維持
-            }} 
+            style={{ width: "16px", height: "16px", objectFit: "contain" }} 
           />
         </button>
 
-
-        {/* アクションメニュー（通常の送金・請求） */}
+        {/* メニューエリア */}
         <button onClick={() => navigate("/transactionhistory")} className="actionButton"
           style={{ marginTop: '10px', backgroundColor: '#fff', border: '1px solid #ddd' }}
           type="button"
         >
-          <img className="actionIcon" src="/images/history.png" alt="" />
+          <img className="actionIcon" src="/images/rireki.png" alt="" />
           <span className="actionText" style={{ color: '#333' }}>請求・送金状況を確認する</span>
         </button>
 
@@ -158,7 +138,7 @@ export default function App({ loginUser }) {
           <span className="actionText">請求する</span>
         </button>
 
-        {/* ★ 他の人が実装した機能：未払い（unpaid）がある時だけ表示される通知ボタン */}
+        {/* 未払いリクエストがある時のみ表示されるボタン */}
         {hasPendingRequest && (
           <button
             onClick={() => navigate("/payrequest")}
@@ -174,7 +154,7 @@ export default function App({ loginUser }) {
         )}
       </div>
 
-      {/* ★ 他の人が実装した機能：一週間経過メッセージのポップアップ（最前面に表示） */}
+      {/* 期限超過時の緊急ポップアップ（オーバーレイ） */}
       {urgentRequest && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -186,7 +166,7 @@ export default function App({ loginUser }) {
             width: '85%', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
           }}>
             <div style={{ color: '#D11C1C', fontSize: '50px', marginBottom: '10px' }}>⚠️</div>
-            <h2 style={{ margin: '0 0 15px', color: '#D11C1C' }}>支払い期限超過</h2>
+            <h2 style={{ margin: '0 0 15px', color: '#D11C1C', fontWeight: 'bold' }}>支払い期限超過</h2>
             <p style={{ fontSize: '15px', color: '#333', lineHeight: '1.6', marginBottom: '25px' }}>
               {urgentRequest.requesterName}さんからの請求（{urgentRequest.amount.toLocaleString()}円）から一週間以上経過しています。速やかにお支払いください。
             </p>

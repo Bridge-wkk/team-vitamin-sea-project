@@ -74,5 +74,18 @@
       "message": "",
       "createdAt": "2026-02-04T00:45:37.489Z"
     }
+  ],
+  "send1": [
+    {
+      "id": 1,
+      "senderId": "1",
+      "senderName": "サンプル 氏名A",
+      "receiverId": "2",
+      "receiverName": "サンプル 氏名B",
+      "amount": 1000,
+      "message": "テスト送金です",
+      "date": "2026/02/04 10:50:00",
+      "type": "transfer"
+    }
   ]
 }

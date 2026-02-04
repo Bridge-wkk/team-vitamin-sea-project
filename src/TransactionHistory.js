@@ -118,7 +118,7 @@ const TransactionHistory = ({ loginUser }) => {
                 <div style={{ fontWeight: 'bold', fontSize: '15px', color: '#333' }}>
                   {isTransfer 
                     ? `${targetUser?.name || '不明なユーザー'} さんへ送金` 
-                    : (item.message || "請求リクエスト")
+                    : `${item.receiverName} さんへの請求リクエスト`
                   }
                 </div>
                 <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>

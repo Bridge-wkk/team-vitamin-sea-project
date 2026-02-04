@@ -11,6 +11,7 @@ import Step6Screen from './step6';
 import CreateRequest from "./CreateRequest";
 import RequestComplete from "./RequestComplete";
 import PayRequest from "./PayRequest";
+import TransactionHistory from "./TransactionHistory";
 
 function Routers() {
   const [loginUser, setLoginUser] = useState(null);
@@ -69,6 +70,12 @@ function Routers() {
           path="/createrequest" 
           element={loginUser ? <CreateRequest loginUser={loginUser} /> : <Navigate to="/" />} 
 
+        />
+
+        <Route 
+         path="/transactionhistory" 
+         element={loginUser ? <TransactionHistory loginUser={loginUser} />  : <Navigate to="/login" />} 
+        
         />
 
         <Route path="/step6" element={<Step6Screen />} />

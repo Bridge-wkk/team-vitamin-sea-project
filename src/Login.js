@@ -52,7 +52,7 @@ const Login = ({ setLoginUser }) => {
           </div>
           <div className="form-group" style={{ marginBottom: "30px" }}>
             <label className="input-label">パスワード</label>
-            <input type="password" className="text-input" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input type="password" className="text-input" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="半角英数字を入力してください"/>
           </div>
           <button className="login-btn" onClick={handleLogin}>ログイン</button>
         </div>

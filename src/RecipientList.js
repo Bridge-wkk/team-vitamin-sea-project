@@ -1,10 +1,22 @@
 // RecipientList.js
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // navigateをインポート
+import { useNavigate, useLocation } from 'react-router-dom'; // navigateをインポート
 
 function RecipientList({ loginUser }) {
   const [friends, setFriends] = useState([]);
   const navigate = useNavigate(); // navigateを使えるようにする
+  const location = useLocation();
+
+  const handleSelect = (user) => {
+  // App.js から渡されたモードを確認
+  if (location.state?.mode === "request") {
+    // ★請求モードなら CreateRequest へ相手情報を渡して飛ばす
+    navigate("/createrequest", { state: { selectedUser: user } });
+  } else {
+    // ★通常（送金）なら STEP4.js へ
+    navigate("/step4", { state: { selectedUser: user } });
+  }
+};
 
   useEffect(() => {
     fetch('http://localhost:3010/friends')
@@ -57,7 +69,7 @@ function RecipientList({ loginUser }) {
         .map(friend => (
           <div 
             key={friend.id} 
-            onClick={() => navigate('/step4', { state: { selectedUser: friend } })} // ここを追加！
+            onClick={() => handleSelect(friend)} // ここを追加！
             style={{ 
               display: 'flex', 
               alignItems: 'center', 

@@ -1,28 +1,30 @@
-// src/CreateRequest.js
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "./App.css";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./CreateRequest.css";
 
 const CreateRequest = ({ loginUser }) => {
   const navigate = useNavigate();
+  const { state } = useLocation();
+  // ★ RecipientListから渡された相手の情報を受け取る
+  const selectedUser = state?.selectedUser; 
 
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
 
   const handleCreate = async () => {
-    if (!loginUser) {
-      alert("ログイン情報が取得できません。一度トップに戻ってください。");
+    if (!amount) {
+      alert("金額を入力してください");
       return;
     }
-    if (!amount) return;
 
+    // ★ 保存するデータを作成
     const requestData = {
       requesterId: loginUser.id,
       requesterName: loginUser.name,
+      targetId: selectedUser?.id || "なし", // 相手のID
+      targetName: selectedUser?.name || "宛先指定なし", // 相手の名前
       amount: Number(amount),
-      message,
-
+      message: message,
       createdAt: new Date().toLocaleString('ja-JP')
     };
 
@@ -34,19 +36,13 @@ const CreateRequest = ({ loginUser }) => {
         body: JSON.stringify(requestData),
       });
 
-      // ★請求リンク生成：requesterId を追加（これが重要）
-      const link = `/payrequest?requesterId=${encodeURIComponent(
-        loginUser.id
-      )}&from=${encodeURIComponent(loginUser.name)}&amount=${encodeURIComponent(
-        amount
-      )}&message=${encodeURIComponent(message)}`;
+      // 完了画面へ移動し、作成したリンクを渡す
+      const link = `/payrequest?requesterId=${loginUser.id}&amount=${amount}`;
+      navigate("/requestcomplete", { state: { link } });
 
-      navigate("/requestcomplete", {
-        state: { link },
-      });
     } catch (err) {
-      alert("請求の保存に失敗しました");
       console.error(err);
+      alert("保存に失敗しました");
     }
   };
 
@@ -56,6 +52,15 @@ const CreateRequest = ({ loginUser }) => {
     <div className="page">
       <div className="screen">
         <h2 className="screen-title">請求リンクの作成</h2>
+
+        {/* ★ 修正：誰に請求するかを表示するエリアを追加 */}
+        {selectedUser && (
+          <div style={{ textAlign: 'center', marginBottom: '20px', padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+            <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>請求先</p>
+            <img src={selectedUser.icon} style={{ width: '50px', borderRadius: '50%', margin: '5px 0' }} alt="" />
+            <p style={{ fontWeight: 'bold', margin: 0 }}>{selectedUser.name} 様</p>
+          </div>
+        )}
 
         <div className="form-group">
           <label className="input-label">請求金額</label>
@@ -84,7 +89,7 @@ const CreateRequest = ({ loginUser }) => {
           リンクを作成
         </button>
 
-        <button className="back-btn" onClick={() => navigate("/home")}>
+        <button className="back-btn" onClick={() => navigate("/")}>
           トップ画面に戻る
         </button>
       </div>

@@ -3,26 +3,38 @@ import { useNavigate } from "react-router-dom";
 
 const TransactionHistory = ({ loginUser }) => {
   const navigate = useNavigate();
-  // ★ 請求と送金を混ぜた「履歴全体」を管理する箱
-  const [history, setHistory] = useState([]); 
+
+  // ★ 履歴全体（請求 + 送金）を管理する
+  const [history, setHistory] = useState([]);
+  // ★ IDからユーザー情報を引くための辞書
+  const [friendsMap, setFriendsMap] = useState({});
 
   useEffect(() => {
     if (!loginUser) return;
 
-    // 1. db.json の requests と send1 の両方からデータを取得
+    // 1. friends, requests, send1 の3つ全てからデータを取得
     Promise.all([
+      fetch("http://localhost:3010/friends").then((res) => res.json()),
       fetch("http://localhost:3010/requests").then((res) => res.json()),
       fetch("http://localhost:3010/send1").then((res) => res.json())
-    ]).then(([requests, sends]) => {
+    ]).then(([friendsData, requestsData, sendsData]) => {
       
-      // 2. 自分が作成した請求だけを抽出
-      const myRequests = requests.filter(req => req.requesterId === loginUser.id);
+      // A. ユーザー辞書(Map)を作成 (IDからアイコン等を引けるようにする)
+      const map = {};
+      friendsData.forEach((u) => {
+        map[u.id] = u;
+      });
+      setFriendsMap(map);
+
+      // B. 自分が作成した請求だけを抽出
+      const myRequests = requestsData.filter(req => req.requesterId === loginUser.id);
       
-      // 3. 自分が実行した送金だけを抽出
-      const mySends = sends.filter(send => send.senderId === loginUser.id);
+      // C. 自分が実行した送金だけを抽出
+      const mySends = sendsData.filter(send => send.senderId === loginUser.id);
       
-      // 4. 二つを合体させて、日付の新しい順に並べ替える
+      // D. 二つを合体させて、日付の新しい順に並べ替える
       const combined = [...myRequests, ...mySends].sort((a, b) => {
+        // requestsは createdAt, send1は date という名前で日付を持っている前提
         const dateA = new Date(a.createdAt || a.date);
         const dateB = new Date(b.createdAt || b.date);
         return dateB - dateA; // 新しい順
@@ -33,69 +45,132 @@ const TransactionHistory = ({ loginUser }) => {
   }, [loginUser.id]);
 
   return (
-    <div style={{ backgroundColor: '#fff', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: '#fff', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       {/* ヘッダー */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '15px', borderBottom: '1px solid #ddd' }}>
-        {/* ★ navigate("/home") にしてログイン画面に戻るのを防ぐ */}
         <button onClick={() => navigate("/home")} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>＜ 戻る</button>
-        <h2 style={{ fontSize: '17px', margin: '0 auto' }}>請求・送金履歴</h2>
+        <h2 style={{ fontSize: '16px', margin: '0 auto', fontWeight: 'bold' }}>請求・送金履歴</h2>
       </div>
 
       <div style={{ padding: '15px' }}>
         <h3 style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>送金・請求履歴</h3>
         
-        {history.map((item) => (
-          <div key={item.id + (item.type || 'req')} style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            padding: '15px 0', 
-            borderBottom: '1px solid #f5f5f5' 
-          }}>
-            {/* アイコン表示：送金なら相手のアイコン、請求なら封筒 */}
-            <div style={{ marginRight: '12px' }}>
-              {item.type === "transfer" ? (
-                <img src={item.receiverIcon} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} alt="" />
-              ) : (
-                <div style={{ 
-                  width: '40px', height: '40px', borderRadius: '50%', 
-                  backgroundColor: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px'
-                }}>
-                  ✉️
+        {history.map((item) => {
+          // --- 1. データ種別の判定 ---
+          // send1由来のデータには type="transfer" や "request_payment" が入っている想定
+          // または receiverId があるかどうかで判定してもOK
+          const isTransfer = item.senderId === loginUser.id && (item.type === "transfer" || item.type === "request_payment");
+
+          // --- 2. 請求の場合の支払い状態判定 ---
+          // statusが"paid"なら支払い済み
+          const isPaidRequest = !isTransfer && item.status === "paid";
+          
+          // --- 3. 相手の情報を特定 ---
+          let targetUser = null;
+          if (isTransfer) {
+            // 送金なら「送った相手(receiverId)」
+            targetUser = friendsMap[item.receiverId];
+          } else if (isPaidRequest) {
+            // 支払済みの請求なら「払ってくれた人(payerId)」
+            targetUser = friendsMap[item.payerId];
+          }
+
+          return (
+            <div key={item.id + (item.type || 'req')} style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              padding: '15px 0', 
+              borderBottom: '1px solid #f5f5f5' 
+            }}>
+              
+              {/* --- アイコン表示エリア --- */}
+              <div style={{ marginRight: '12px', width: '50px', textAlign: 'center' }}>
+                {isTransfer ? (
+                  // パターンA: 自分が送金した (相手のアイコン)
+                  <img 
+                    src={targetUser?.icon || "/images/human1.png"} 
+                    style={{ width: '45px', height: '45px', borderRadius: '50%', objectFit: 'cover' }} 
+                    alt="" 
+                  />
+                ) : isPaidRequest && targetUser ? (
+                  // パターンB: 請求が支払われた (支払った人のアイコン + チェックマーク)
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <img 
+                      src={targetUser.icon} 
+                      alt={targetUser.name}
+                      style={{ width: '45px', height: '45px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #2ecc71' }} 
+                    />
+                    <div style={{ position: 'absolute', bottom: -2, right: -2, background: '#fff', borderRadius: '50%', fontSize: '12px' }}>✅</div>
+                  </div>
+                ) : (
+                  // パターンC: 未払いの請求 (封筒アイコン)
+                  <div style={{ 
+                    width: '45px', height: '45px', borderRadius: '50%', 
+                    backgroundColor: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px'
+                  }}>
+                    ✉️
+                  </div>
+                )}
+              </div>
+
+              {/* --- メインテキストエリア --- */}
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 'bold', fontSize: '15px', color: '#333' }}>
+                  {isTransfer 
+                    ? `${targetUser?.name || '不明なユーザー'} さんへ送金` 
+                    : (item.message || "請求リクエスト")
+                  }
                 </div>
-              )}
-            </div>
+                <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                  {new Date(item.createdAt || item.date).toLocaleString()}
+                  
+                  {/* 請求が支払われている場合、誰からかも表示 */}
+                  {!isTransfer && isPaidRequest && targetUser && (
+                    <span style={{ marginLeft: '8px', color: '#2ecc71', fontWeight: 'bold' }}>
+                       From: {targetUser.name}
+                    </span>
+                  )}
+                </div>
+              </div>
 
-            <div style={{ flex: 1 }}>
-              {/* 表示テキストの出し分け */}
-              <div style={{ fontWeight: 'bold' }}>
-                {item.type === "transfer" ? `${item.receiverName} さんへ送金` : (item.message || "請求リクエスト")}
+              {/* --- 金額とステータスエリア --- */}
+              <div style={{ textAlign: 'right' }}>
+                {/* 送金は赤字(-)、請求は黒字 */}
+                <div style={{ 
+                  fontWeight: 'bold', 
+                  fontSize: '16px', 
+                  color: isTransfer ? '#D11C1C' : '#333' 
+                }}>
+                  {isTransfer ? "-" : ""}¥{Number(item.amount).toLocaleString()}
+                </div>
+                
+                {/* ステータスバッジ */}
+                <div style={{ marginTop: '4px' }}>
+                  {isTransfer ? (
+                    <span style={{ fontSize: '11px', color: '#28a745' }}>● 送金完了</span>
+                  ) : (
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: 'bold',
+                      color: isPaidRequest ? '#2ecc71' : '#f39c12',
+                      border: `1px solid ${isPaidRequest ? '#2ecc71' : '#f39c12'}`,
+                      padding: '2px 6px',
+                      borderRadius: '4px'
+                    }}>
+                      {isPaidRequest ? "支払済" : "請求中"}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div style={{ fontSize: '12px', color: '#999' }}>
-                {new Date(item.createdAt || item.date).toLocaleString()}
-              </div>
-            </div>
 
-            <div style={{ textAlign: 'right' }}>
-              {/* 送金の場合は金額を赤字にするなどの演出 */}
-              <div style={{ 
-                fontWeight: 'bold', 
-                fontSize: '16px', 
-                color: item.type === "transfer" ? '#D11C1C' : '#333' 
-              }}>
-                {item.type === "transfer" ? "-" : ""}¥{Number(item.amount).toLocaleString()}
-              </div>
-              <div style={{ 
-                fontSize: '11px', 
-                color: item.type === "transfer" ? '#28a745' : '#f39c12' 
-              }}>
-                ● {item.type === "transfer" ? "送金完了" : "請求済み"}
-              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {history.length === 0 && (
-          <p style={{ textAlign: 'center', color: '#999', marginTop: '30px' }}>履歴はありません</p>
+          <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
+            <p>履歴はありません</p>
+          </div>
         )}
       </div>
     </div>

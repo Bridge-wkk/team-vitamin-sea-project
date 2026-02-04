@@ -98,7 +98,7 @@ const RequestList = ({ loginUser }) => {
 
         <button 
           className="back-btn" 
-          onClick={() => navigate("/")} 
+          onClick={() => navigate("/home")} 
           style={{ 
             marginTop: '30px', 
             width: '100%', 

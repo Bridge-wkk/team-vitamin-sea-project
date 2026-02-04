@@ -12,15 +12,16 @@ import CreateRequest from "./CreateRequest";
 import RequestComplete from "./RequestComplete";
 import PayRequest from "./PayRequest";
 import TransactionHistory from "./TransactionHistory";
-import BalanceHistory from "./BalanceHistory"; // ★追加
-import NotYourRequest from "./NotYourRequest"; // ★追加
+import BalanceHistory from "./BalanceHistory";
+import NotYourRequest from "./NotYourRequest";
 import RequestList from "./RequestList";
+import TransactionDetail from "./TransactionDetail"; // ✅ 追加
 
 function Routers() {
   const [loginUser, setLoginUser] = useState(null);
   const [loading, setLoading] = useState(true); // 復元待ちの状態
 
-  // ★ 自動ログアウトまでの時間（10分）
+  // 自動ログアウトまでの時間（10分）
   const AUTO_LOGOUT_MS = 10 * 60 * 1000;
 
   // 1. ページ読み込み時にログイン情報を復元する
@@ -43,43 +44,36 @@ function Routers() {
     }
   }, []);
 
-  // ★ 2. ログイン中：10分無操作なら自動ログアウト
+  // 2. ログイン中：10分無操作なら自動ログアウト
   useEffect(() => {
     if (!loginUser) return;
 
-    // 最後に操作した時刻を更新する
     const updateLastActive = () => {
       localStorage.setItem("lastActiveAt", String(Date.now()));
     };
 
-    // ログインした瞬間も一度記録
     updateLastActive();
 
-    // ユーザー操作を検知するイベント
     const events = ["click", "mousemove", "keydown", "scroll", "touchstart"];
     events.forEach((event) =>
       window.addEventListener(event, updateLastActive, { passive: true })
     );
 
-    // 一定間隔で「最後の操作から10分経ったか」をチェック
     const intervalId = setInterval(() => {
       const lastActive = Number(localStorage.getItem("lastActiveAt"));
       const now = Date.now();
 
       if (!Number.isFinite(lastActive)) return;
 
-      // 10分超えたらログアウト
       if (now - lastActive > AUTO_LOGOUT_MS) {
         localStorage.removeItem("loginUserId");
         localStorage.removeItem("lastActiveAt");
         setLoginUser(null);
 
-        // ログイン画面へ
         window.location.href = "/";
       }
-    }, 10 * 1000); // 10秒ごとにチェック
+    }, 10 * 1000);
 
-    // 後始末（コンポーネント破棄やログアウト時）
     return () => {
       clearInterval(intervalId);
       events.forEach((event) =>
@@ -88,13 +82,12 @@ function Routers() {
     };
   }, [loginUser, AUTO_LOGOUT_MS]);
 
-  // 読み込み中は描画しない（復元が終わるまで待つ）
   if (loading) return null;
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* ログイン画面 (パスは "/") */}
+        {/* ログイン画面 */}
         <Route path="/" element={<Login setLoginUser={setLoginUser} />} />
 
         {/* ホーム */}
@@ -121,11 +114,11 @@ function Routers() {
           element={<PayRequest loginUser={loginUser} />}
         />
 
-        {/* 送金完了画面など */}
+        {/* 完了画面など */}
         <Route path="/step6" element={<Step6Screen />} />
         <Route path="/requestcomplete" element={<RequestComplete />} />
 
-        {/* 取引履歴画面 */}
+        {/* 取引履歴画面（ログイン必須） */}
         <Route
           path="/transactionhistory"
           element={
@@ -137,7 +130,19 @@ function Routers() {
           }
         />
 
-        {/* 残高履歴画面 (ログイン必須) */}
+        {/* ✅ 取引詳細画面（ログイン必須） */}
+        <Route
+          path="/transaction/:kind/:id"
+          element={
+            loginUser ? (
+              <TransactionDetail loginUser={loginUser} />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+
+        {/* 残高履歴画面（ログイン必須） */}
         <Route
           path="/balance"
           element={
@@ -149,7 +154,7 @@ function Routers() {
           }
         />
 
-        {/* ★追加: この請求リンクはあなた宛てではありません */}
+        {/* この請求リンクはあなた宛てではありません */}
         <Route path="/notyourrequest" element={<NotYourRequest />} />
 
         <Route path="/requestlist" element={<RequestList loginUser={loginUser} />} />

@@ -141,7 +141,7 @@ export default function App({ loginUser }) {
         {/* 未払いリクエストがある時のみ表示されるボタン */}
         {hasPendingRequest && (
           <button
-            onClick={() => navigate("/payrequest")}
+            onClick={() => navigate("/requestlist")}
             className="actionButton"
             style={{ backgroundColor: '#fff5f5', border: '1px solid #ffcccc', marginTop: '10px' }}
             type="button"

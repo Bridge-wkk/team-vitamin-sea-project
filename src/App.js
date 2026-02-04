@@ -98,7 +98,7 @@ export default function App({ loginUser }) {
         </button>
 
         <button 
-          onClick={() => navigate("/payrequest")} 
+          onClick={() => navigate("/RequestList")} 
           className="actionButton" 
           style={{ backgroundColor: '#fff5f5', border: '1px solid #ffcccc', marginTop: '10px' }}
           type="button"

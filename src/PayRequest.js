@@ -16,7 +16,7 @@ const PayRequest = ({ loginUser }) => {
   const amountStrFromQuery = params.get("amount") ?? "0";
   const messageFromQuery = params.get("message") ?? "";
 
-  const [request, setRequest] = useState(null);     // requestsテーブルの請求データ
+  const [request, setRequest] = useState(null); // requestsテーブルの請求データ
   const [selectedUser, setSelectedUser] = useState(null); // 請求者（相手）
   const [invalidReason, setInvalidReason] = useState(""); // 無効理由
   const [isSending, setIsSending] = useState(false);
@@ -52,7 +52,9 @@ const PayRequest = ({ loginUser }) => {
     }
   }, [loginUser, navigate, location.pathname, location.search]);
 
-  // 2) requestId があるなら請求データを取得して「支払済みなら無効」
+  // 2) requestId があるなら請求データを取得して
+  //    - 支払済みなら無効
+  //    - 支払者(receiverId)がログインユーザーと一致しなければ NotYourRequestへ
   useEffect(() => {
     if (!loginUser) return;
 
@@ -78,14 +80,31 @@ const PayRequest = ({ loginUser }) => {
           return;
         }
 
-        // ✅ 未払いなら保持
+        // ✅ 追加：支払者チェック（receiverId）
+        // receiverId が入っている請求は「その人だけが支払える」
+        const receiverId = String(data.receiverId ?? "");
+        const loginId = String(loginUser.id ?? "");
+
+        if (receiverId && receiverId !== loginId) {
+          navigate("/notyourrequest", {
+            replace: true,
+            state: {
+              payerName: data.receiverName, // 本来支払うべき人
+              requesterName: data.requesterName, // 請求者
+              redirectTo: `${location.pathname}${location.search}`, // 正しい人で再ログイン後に戻す先
+            },
+          });
+          return;
+        }
+
+        // ✅ 未払い＆本人なら保持
         setRequest(data);
       } catch (e) {
         console.error("requests取得エラー:", e);
         setInvalidReason("請求情報の取得に失敗しました。");
       }
     })();
-  }, [loginUser, requestId]);
+  }, [loginUser, requestId, navigate, location.pathname, location.search]);
 
   // 3) 請求者（相手）の情報を取得
   useEffect(() => {

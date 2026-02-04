@@ -76,6 +76,16 @@ export default function App({ loginUser }) {
         </button>
 
         {/* 各種アクション */}
+        <button onClick={() => navigate("/transactionhistory")} className="actionButton"
+        style={{ marginTop: '10px', backgroundColor: '#fff', border: '1px solid #ddd' }}
+        type="button"
+        >
+          <img className="actionIcon" src="/images/history.png" alt="" />
+          <span className="actionText" style={{ color: '#333' }}> 
+            請求・送金状況を確認する
+          </span>
+        </button>
+
         <button onClick={() => navigate("/recipientlist")} className="actionButton" type="button">
           <img className="actionIcon" src="/images/wallet.png" alt="" />
           <span className="actionText">送金する</span>
@@ -96,16 +106,6 @@ export default function App({ loginUser }) {
           <img className="actionIcon" src="/images/bikkurimark.png" alt="" />
           <span className="actionText" style={{ color: '#D11C1C', fontWeight: 'bold' }}>
             支払いリクエストが届いています
-          </span>
-        </button>
-        
-        <button onClick={() => navigate("/transactionhistory")} className="actionButton"
-        style={{ marginTop: '10px', backgroundColor: '#fff', border: '1px solid #ddd' }}
-        type="button"
-        >
-          <img className="actionIcon" src="/images/history.png" alt="" />
-          <span className="actionText" style={{ color: '#333' }}> 
-            請求・送金状況を確認する
           </span>
         </button>
       </div>

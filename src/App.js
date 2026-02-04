@@ -3,19 +3,28 @@ import React from "react";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
 
-// ★ 引数を { loginUser } に統一
 export default function App({ loginUser }) { 
   const navigate = useNavigate();
-  const [currentBalance, setCurrentBalance] = React.useState(loginUser.balance);
+  const [currentBalance, setCurrentBalance] = React.useState(loginUser ? loginUser.balance : 0);
 
+  // ★ ログアウト処理
+  const handleLogout = () => {
+    localStorage.removeItem('loginUserId'); 
+    navigate('/'); 
+    window.location.reload(); 
+  };
+
+  // ★ 最新の残高を取得する処理
   React.useEffect(() => {
-    // ログイン直後に最新の残高を取得し直す
-    fetch(`http://localhost:3010/friends/${loginUser.id}`)
-      .then(res => res.json())
-      .then(data => setCurrentBalance(Number(data.balance)));
-  }, [loginUser.id]);
+    if (loginUser && loginUser.id) {
+      fetch(`http://localhost:3010/friends/${loginUser.id}`)
+        .then(res => res.json())
+        .then(data => setCurrentBalance(Number(data.balance)))
+        .catch(err => console.error("残高取得エラー:", err));
+    }
+  }, [loginUser]);
 
-  // ★ データが届くまでの間、真っ白にならないようにガード
+  // ★ ガード処理：データがない場合は読み込み中を表示
   if (!loginUser) {
     return (
       <div className="page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -27,22 +36,38 @@ export default function App({ loginUser }) {
   return (
     <div className="page">
       <div className="screen">
-        {/* 上部：アイコン + 氏名 */}
-        <div className="header">
-          <div className="avatar">
-            <img src={loginUser.icon} alt="ユーザーアイコン"/>
+        {/* ヘッダー：アイコン、名前、ログアウトボタン */}
+        <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div className="avatar">
+              <img src={loginUser.icon} alt="ユーザーアイコン" />
+            </div>
+            <div className="name">{loginUser.name}</div>
           </div>
-          <div className="name">{loginUser.name}</div>
+
+          <button 
+            onClick={handleLogout} 
+            style={{ 
+              fontSize: '11px', 
+              padding: '4px 8px', 
+              backgroundColor: '#f0f0f0', 
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              color: '#666'
+            }}
+          >
+            ログアウト
+          </button>
         </div>
 
         {/* 口座番号 / 残高表示 */}
-
-        <div className="subRow">
+        <div className="subRow" style={{ marginTop: '20px' }}>
           <div className="subLeft">口座番号：{loginUser.accountNumber}</div>
           <button className="subRight" type="button">残高表示</button>
         </div>
 
-        {/* 残高カード */}
+        {/* 残高カード：currentBalanceを表示 */}
         <button className="balanceCard" type="button">
           <div className="balanceAmount">
             {currentBalance.toLocaleString()}円
@@ -61,7 +86,6 @@ export default function App({ loginUser }) {
           <span className="actionText">請求する</span>
         </button>
 
-        {/* 支払い通知（Step8） */}
         <button 
           onClick={() => navigate("/payrequest")} 
           className="actionButton" 

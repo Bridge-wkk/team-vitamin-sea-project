@@ -25,7 +25,7 @@ function RecipientList({ loginUser }) {
     }}>
       {/* 戻るボタン：左端に配置 */}
       <button 
-        onClick={() => navigate("/")} 
+        onClick={() => navigate("/home")} 
         style={{ 
           background: 'none',
           border: 'none',

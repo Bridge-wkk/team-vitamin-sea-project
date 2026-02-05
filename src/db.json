@@ -12,7 +12,7 @@
       "id": "2",
       "name": "サンプル 氏名B",
       "accountNumber": "2222222",
-      "balance": 47857,
+      "balance": 47657,
       "password": "passwordB",
       "icon": "/images/human2.png"
     },
@@ -28,7 +28,7 @@
       "id": "4",
       "name": "サンプル 氏名D",
       "accountNumber": "4444444",
-      "balance": 60000,
+      "balance": 60200,
       "password": "passwordD",
       "icon": "/images/human4.png"
     },
@@ -367,6 +367,18 @@
       "amount": 100,
       "message": "",
       "date": "2026/2/5 9:55:56",
+      "type": "transfer"
+    },
+    {
+      "id": "492b",
+      "senderId": "2",
+      "senderName": "サンプル 氏名B",
+      "receiverId": "4",
+      "receiverName": "サンプル 氏名D",
+      "receiverIcon": "/images/human4.png",
+      "amount": 200,
+      "message": "",
+      "date": "2026/2/5 10:19:15",
       "type": "transfer"
     }
   ],

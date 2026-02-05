@@ -28,7 +28,7 @@ const TransactionHistory = ({ loginUser }) => {
       setFriendsMap(map);
 
       const myRequests = requestsData.filter((req) => req.requesterId === loginUser.id);
-      const mySends = sendsData.filter((send) => send.senderId === loginUser.id);
+      const mySends = sendsData.filter(send => send.senderId === loginUser.id || (send.receiverId===loginUser.id && send.type === "transfer"));
 
       const combined = [...myRequests, ...mySends]
         .map((item) => ({
@@ -201,11 +201,14 @@ const TransactionHistory = ({ loginUser }) => {
         {filteredHistory.map((item) => {
           const isTransfer =
             item.senderId === loginUser.id && (item.type === "transfer" || item.type === "request_payment");
+          const isMyReceived = item.receiverId === loginUser.id && item.type === "transfer";
           const isPaidRequest = !isTransfer && item.status === "paid";
 
           let targetUser = null;
           if (isTransfer) {
             targetUser = friendsMap[item.receiverId];
+          } else if (isMyReceived) {
+            targetUser = friendsMap[item.senderId];
           } else if (isPaidRequest) {
             targetUser = friendsMap[item.payerId];
           } else {
@@ -243,6 +246,14 @@ const TransactionHistory = ({ loginUser }) => {
                     />
                     <div style={{ position: "absolute", bottom: -2, right: -2, background: "#fff", borderRadius: "50%", fontSize: "12px" }}>✅</div>
                   </div>
+                ) : isMyReceived ? (
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <img 
+                      src={targetUser.icon} 
+                      alt={targetUser.name}
+                      style={{ width: '45px', height: '45px'}} 
+                    />
+                  </div>
                 ) : (
                   <div style={{ width: "45px", height: "45px", borderRadius: "50%", backgroundColor: "#eee", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>
                     ✉️
@@ -251,8 +262,15 @@ const TransactionHistory = ({ loginUser }) => {
               </div>
 
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: "bold", fontSize: "15px", color: "#333" }}>
-                  {isTransfer ? `${targetUser?.name || "不明なユーザー"} さんへ送金` : `${item.receiverName} さんへの請求`}
+                <div style={{ fontWeight: 'bold', fontSize: '15px', color: '#333' }}>
+                  {
+                    isTransfer
+                      ? `${targetUser?.name || '不明なユーザー'} さんへ送金`
+                      : isMyReceived
+                        ? `${targetUser?.name || '不明なユーザー'} さんから受取`
+                        : `${item.receiverName} さんへの請求リクエスト`
+                  }
+                  
                 </div>
                 <div style={{ fontSize: "12px", color: "#999", marginTop: "4px" }}>
                   {new Date(item.createdAt || item.date).toLocaleString()}
@@ -270,20 +288,20 @@ const TransactionHistory = ({ loginUser }) => {
                 </div>
                 <div style={{ marginTop: "4px" }}>
                   {isTransfer ? (
-                    <span style={{ fontSize: "11px", color: "#28a745" }}>● 送金完了</span>
-                  ) : (
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        fontWeight: "bold",
-                        color: isPaidRequest ? "#2ecc71" : "#f39c12",
-                        border: `1px solid ${isPaidRequest ? "#2ecc71" : "#f39c12"}`,
-                        padding: "2px 6px",
-                        borderRadius: "4px",
-                      }}
-                    >
-                      {isPaidRequest ? "受取済" : "請求中"}
+                    <span style={{ fontSize: '11px', color: '#28a745' }}>● 送金完了</span>
+                  ) : !isMyReceived ? (
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: 'bold',
+                      color: isPaidRequest ? '#2ecc71' : '#f39c12',
+                      border: `1px solid ${isPaidRequest ? '#2ecc71' : '#f39c12'}`,
+                      padding: '2px 6px',
+                      borderRadius: '4px'
+                    }}>
+                      {isPaidRequest ? "支払済" : "請求中"}
                     </span>
+                  ) : (
+                    <span></span>
                   )}
                 </div>
                 <div style={{ fontSize: "16px", color: "#bbb", marginTop: "6px" }}>›</div>

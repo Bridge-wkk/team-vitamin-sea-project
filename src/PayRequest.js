@@ -179,7 +179,7 @@ const PayRequest = ({ loginUser }) => {
         message: message,
         replyMessage: replyMessage || "", // ✅ 返信メッセージを保存したいなら（DB側の仕様次第）
         date: new Date().toLocaleString("ja-JP"),
-        type: "transfer",
+        type: "request_payment",
       };
 
       await fetch("http://localhost:3010/send1", {

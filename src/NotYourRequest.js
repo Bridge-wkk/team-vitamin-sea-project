@@ -6,8 +6,6 @@ const NotYourRequest = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const payerName = location.state?.payerName || "";
-  const requesterName = location.state?.requesterName || "";
   const redirectTo = location.state?.redirectTo || "/home";
 
   const handleReLogin = () => {
@@ -40,13 +38,6 @@ const NotYourRequest = () => {
       >
         <div style={{ fontWeight: "bold", marginBottom: "6px" }}>
           ⚠️ 支払いできません
-        </div>
-
-        <div>
-          このリンクの支払者：<b>{payerName || "（不明）"}</b>
-        </div>
-        <div>
-          請求者：<b>{requesterName || "（不明）"}</b>
         </div>
 
         <div style={{ marginTop: "8px", fontSize: "13px" }}>

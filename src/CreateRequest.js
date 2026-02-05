@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 import "./CreateRequest.css";
@@ -11,56 +11,102 @@ const CreateRequest = ({ loginUser }) => {
   const [amount, setAmount] = useState("");
   const [amountError, setAmountError] = useState("");
   const [message, setMessage] = useState("");
-  // ★ 請求金額確認画面の状態管理
+
+  // 請求金額確認画面
   const [isConfirming, setIsConfirming] = useState(false);
 
-  const balance = useMemo(
-    () => Number(loginUser?.balance || 0),
-    [loginUser]
-  );
+  // 二重送信防止
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleAmountChange = (e) => {
-    const value = e.target.value;
+  // selectedUser が無い（直アクセス等）場合のガード
+  // ここで return すると「壊れた画面」にならない
+  if (!selectedUser) {
+    return (
+      <div className="page crPage">
+        <div className="crHeader">
+          <button className="crBackButton" onClick={() => navigate(-1)}>
+            ＜ 戻る
+          </button>
+          <h2 className="crHeaderTitle">請求リンクの作成</h2>
+        </div>
 
-    if (value === "") {
-      setAmount("");
+        <div className="screen" style={{ padding: "20px", textAlign: "center" }}>
+          <p style={{ color: "#666" }}>
+            請求相手が選択されていません。
+            <br />
+            宛先一覧から相手を選んでください。
+          </p>
+          <button
+            className="create-link-btn"
+            onClick={() => navigate("/recipientlist", { state: { mode: "request" } })}
+            style={{ marginTop: "12px" }}
+          >
+            宛先一覧へ戻る
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const validateAmount = (valueStr) => {
+    if (valueStr === "") {
+      // 空のときは「未入力」なのでエラーは出さない（ボタンdisabledで制御）
+      setAmountError("");
+      return;
+    }
+    if (!/^[0-9]+$/.test(valueStr)) {
+      setAmountError("半角数字で入力してください");
+      return;
+    }
+    const n = Number(valueStr);
+    if (n < 1) {
       setAmountError("1円以上の半角数字で入力してください");
       return;
     }
+    setAmountError("");
+  };
 
-    // 上下バーを出さないよう type="text" を維持し、数字以外を弾く
-    if (!/^[0-9]+$/.test(value)) return;
-
-    const n = Number(value);
-
-    if (n < 1) {
-      setAmountError("1円以上の半角数字で入力してください");
-    } else {
-      setAmountError("");
-    }
+  const handleAmountChange = (e) => {
+    const value = e.target.value;
+    // 数字以外は入力させない（空はOK）
+    if (value !== "" && !/^[0-9]+$/.test(value)) return;
 
     setAmount(value);
+    validateAmount(value);
   };
 
-  // ★ 変更：最初のリクエストボタンを押した時の処理
+  // 最初の「リンクを作成」ボタン（確認画面へ）
   const handleInitialClick = () => {
-    if (!amount || !!amountError) return;
-    setIsConfirming(true); // 確認画面へ切り替え
+    validateAmount(amount);
+    if (!amount) return;
+    if (amountError) return;
+    if (isSubmitting) return;
+    setIsConfirming(true);
   };
 
-  // ★ 実際のリクエスト保存処理
+  // 実際の保存処理
   const handleCreate = async () => {
-    if (!loginUser) return;
+    if (!loginUser) {
+      alert("ログイン情報が取得できません。トップに戻ってログインし直してください。");
+      navigate("/", { replace: true, state: { redirectTo: "/createrequest" } });
+      return;
+    }
+
+    validateAmount(amount);
+    if (!amount || amountError) return;
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
 
     const n = Number(amount);
-    
+
     const requestData = {
-      requesterId: loginUser.id,
+      requesterId: String(loginUser.id),
       requesterName: loginUser.name,
-      receiverId: selectedUser.id,
+      receiverId: String(selectedUser.id),
       receiverName: selectedUser.name,
       amount: n,
-      message,
+      message: message || "",
       createdAt: new Date().toLocaleString("ja-JP"),
       status: "unpaid",
     };
@@ -72,34 +118,42 @@ const CreateRequest = ({ loginUser }) => {
         body: JSON.stringify(requestData),
       });
 
+      if (!res.ok) {
+        throw new Error("requests POST failed");
+      }
+
       const created = await res.json();
       const requestId = created.id;
 
-      const link = `/payrequest?requestId=${requestId}&requesterId=${loginUser.id}&from=${loginUser.name}`;
+      // ✅ 改善：リンクは requestId のみ（余計なパラメータは改ざん可能なので入れない）
+      const link = `/payrequest?requestId=${encodeURIComponent(requestId)}`;
 
       navigate("/requestcomplete", { state: { link } });
     } catch (e) {
+      console.error(e);
       alert("請求の保存に失敗しました");
+      setIsSubmitting(false);
     }
   };
 
-  const isCreateDisabled = !amount || !!amountError;
+  const isCreateDisabled = !amount || !!amountError || isSubmitting;
 
   return (
     <div className="page crPage">
       <div className="crHeader">
         {/* 確認画面の時は入力に戻り、入力画面の時は前のページに戻る */}
-        <button className="crBackButton" onClick={() => isConfirming ? setIsConfirming(false) : navigate(-1)}>
+        <button
+          className="crBackButton"
+          onClick={() => (isConfirming ? setIsConfirming(false) : navigate(-1))}
+          disabled={isSubmitting}
+        >
           ＜ 戻る
         </button>
-        <h2 className="crHeaderTitle">
-          {isConfirming ? "金額の最終確認" : "請求リンクの作成"}
-        </h2>
+        <h2 className="crHeaderTitle">{isConfirming ? "金額の最終確認" : "請求リンクの作成"}</h2>
       </div>
 
       <div className="screen">
         {!isConfirming ? (
-          /* --- 入力画面 --- */
           <>
             <div className="form-group">
               <label className="input-label">請求金額</label>
@@ -112,9 +166,7 @@ const CreateRequest = ({ loginUser }) => {
                 placeholder="3000"
               />
               <span className="currency-unit">円</span>
-              {amountError && (
-                <div className="error-text">{amountError}</div>
-              )}
+              {amountError && <div className="error-text">{amountError}</div>}
             </div>
 
             <div className="form-group">
@@ -128,27 +180,35 @@ const CreateRequest = ({ loginUser }) => {
               />
             </div>
 
-            <button
-              className="create-link-btn"
-              onClick={handleInitialClick}
-              disabled={isCreateDisabled}
-            >
+            <button className="create-link-btn" onClick={handleInitialClick} disabled={isCreateDisabled}>
               リンクを作成
             </button>
           </>
         ) : (
-          /* --- 確認画面 (追加した機能) --- */
           <div className="confirm-section" style={{ textAlign: "center", padding: "20px" }}>
             <p style={{ color: "#666" }}>以下の内容で請求リンクを作成しますか？</p>
-            <div style={{ margin: "30px 0" }}>
+
+            <div style={{ margin: "18px 0 8px", color: "#888", fontSize: "13px" }}>
+              宛先：<b style={{ color: "#333" }}>{selectedUser.name}</b>
+            </div>
+
+            <div style={{ margin: "20px 0" }}>
               <span style={{ fontSize: "14px", color: "#888" }}>請求額</span>
               <div style={{ fontSize: "36px", fontWeight: "bold", color: "#d32f2f" }}>
-                ¥{Number(amount).toLocaleString()}
+                ¥{Number(amount || 0).toLocaleString()}
               </div>
             </div>
-            
+
             {message && (
-              <div style={{ backgroundColor: "#f5f5f5", padding: "15px", borderRadius: "8px", marginBottom: "30px", textAlign: "left" }}>
+              <div
+                style={{
+                  backgroundColor: "#f5f5f5",
+                  padding: "15px",
+                  borderRadius: "8px",
+                  marginBottom: "30px",
+                  textAlign: "left",
+                }}
+              >
                 <span style={{ fontSize: "12px", color: "#888" }}>メッセージ</span>
                 <p style={{ margin: "5px 0 0" }}>{message}</p>
               </div>
@@ -157,14 +217,17 @@ const CreateRequest = ({ loginUser }) => {
             <button
               className="create-link-btn"
               onClick={handleCreate}
-              style={{ backgroundColor: "#4CAF50" }}
+              style={{ backgroundColor: "#4CAF50", opacity: isSubmitting ? 0.7 : 1 }}
+              disabled={isSubmitting}
             >
-              はい、作成します
+              {isSubmitting ? "作成中..." : "はい、作成します"}
             </button>
+
             <button
               className="crBackButton"
               onClick={() => setIsConfirming(false)}
               style={{ marginTop: "15px", float: "none", color: "#666" }}
+              disabled={isSubmitting}
             >
               修正する
             </button>

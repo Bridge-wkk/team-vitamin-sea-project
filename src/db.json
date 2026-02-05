@@ -165,6 +165,17 @@
       "message": "おねがいします",
       "createdAt": "2026/2/5 10:11:39",
       "status": "unpaid"
+    },
+    {
+      "id": "20f2",
+      "requesterId": "1",
+      "requesterName": "サンプル 氏名A",
+      "receiverId": "2",
+      "receiverName": "サンプル 氏名B",
+      "amount": 300,
+      "message": "",
+      "createdAt": "2026/2/5 10:40:12",
+      "status": "unpaid"
     }
   ],
   "send1": [

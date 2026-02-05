@@ -5,7 +5,7 @@
       "name": "サンプル 氏名A",
       "accountNumber": "1111111",
       "balance": 43349,
-      "password": "passwordA",
+      "password": "1",
       "icon": "/images/human1.png"
     },
     {
@@ -13,7 +13,7 @@
       "name": "サンプル 氏名B",
       "accountNumber": "2222222",
       "balance": 47657,
-      "password": "passwordB",
+      "password": "2",
       "icon": "/images/human2.png"
     },
     {
@@ -21,7 +21,7 @@
       "name": "サンプル 氏名C",
       "accountNumber": "3333333",
       "balance": 14965,
-      "password": "passwordC",
+      "password": "3",
       "icon": "/images/human3.png"
     },
     {
@@ -29,7 +29,7 @@
       "name": "サンプル 氏名D",
       "accountNumber": "4444444",
       "balance": 60200,
-      "password": "passwordD",
+      "password": "4",
       "icon": "/images/human4.png"
     },
     {
@@ -37,7 +37,7 @@
       "name": "サンプル 氏名E",
       "accountNumber": "5555555",
       "balance": 59900,
-      "password": "passwordE",
+      "password": "5",
       "icon": "/images/human5.png"
     },
     {
@@ -45,7 +45,7 @@
       "name": "サンプル 氏名F",
       "accountNumber": "6666666",
       "balance": 48939,
-      "password": "passwordF",
+      "password": "6",
       "icon": "/images/human6.png"
     }
   ],

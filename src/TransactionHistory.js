@@ -7,9 +7,9 @@ const TransactionHistory = ({ loginUser }) => {
   const [history, setHistory] = useState([]);
   const [friendsMap, setFriendsMap] = useState({});
 
-  const [filterStatus, setFilterStatus] = useState("all"); 
+  const [filterStatus, setFilterStatus] = useState("all");
   const [filterPeriod, setFilterPeriod] = useState("1month");
-  
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -21,24 +21,24 @@ const TransactionHistory = ({ loginUser }) => {
       fetch("http://localhost:3010/requests").then((res) => res.json()),
       fetch("http://localhost:3010/send1").then((res) => res.json())
     ]).then(([friendsData, requestsData, sendsData]) => {
-      
+
       const map = {};
       friendsData.forEach((u) => { map[u.id] = u; });
       setFriendsMap(map);
 
-      const myRequests = requestsData.filter(req => 
+      const myRequests = requestsData.filter(req =>
         req.requesterId === loginUser.id || req.receiverId === loginUser.id
       );
 
-      const mySends = sendsData.filter(send => 
+      const mySends = sendsData.filter(send =>
         (send.senderId === loginUser.id || send.receiverId === loginUser.id) && send.type === "transfer"
       );
-      
+
       const combined = [...myRequests, ...mySends].map(item => ({
         ...item,
         dateObj: new Date(item.createdAt || item.date)
       })).sort((a, b) => b.dateObj - a.dateObj);
-      
+
       setHistory(combined);
     });
   }, [loginUser]);
@@ -47,7 +47,7 @@ const TransactionHistory = ({ loginUser }) => {
   const filteredHistory = useMemo(() => {
     return history.filter(item => {
       const isTransferType = item.type === "transfer" || item.type === "request_payment";
-      
+
       // 自分主体のアクションか（送金した/請求した）
       const isMyAction = item.senderId === loginUser.id || item.requesterId === loginUser.id;
 
@@ -94,11 +94,11 @@ const TransactionHistory = ({ loginUser }) => {
     <div style={{ backgroundColor: '#fff', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       <div style={{ display: 'flex', alignItems: 'center', padding: '15px', borderBottom: '1px solid #ddd' }}>
         <button onClick={() => navigate("/home")} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>＜ 戻る</button>
-        <h2 style={{ fontSize: '16px', margin: '0 auto', fontWeight: 'bold' }}>請求・送金履歴</h2>
+        <h2 style={{ fontSize: '16px', margin: '0 auto', fontWeight: 'bold' }}>請求・入出金履歴</h2>
       </div>
 
       <div style={{ padding: '15px' }}>
-        
+
         <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "5px", marginBottom: "20px" }}>
           {[
             { id: "all", label: "すべて" },
@@ -145,15 +145,15 @@ const TransactionHistory = ({ loginUser }) => {
           const isTransferType = item.type === "transfer" || item.type === "request_payment";
           const isPaid = item.status === "paid";
           const isMyAction = item.senderId === loginUser.id || item.requesterId === loginUser.id;
-          
+
           let targetUser = null;
           if (isTransferType) {
             targetUser = isMyAction ? friendsMap[item.receiverId] : friendsMap[item.senderId];
           } else {
             if (isPaid) {
-               targetUser = friendsMap[item.payerId === loginUser.id ? item.requesterId : item.payerId];
+              targetUser = friendsMap[item.payerId === loginUser.id ? item.requesterId : item.payerId];
             } else {
-               targetUser = isMyAction ? friendsMap[item.receiverId] : friendsMap[item.requesterId];
+              targetUser = isMyAction ? friendsMap[item.receiverId] : friendsMap[item.requesterId];
             }
           }
 
@@ -201,22 +201,22 @@ const TransactionHistory = ({ loginUser }) => {
                 amountPrefix = "-";
               }
             }
-            
+
             // ★修正: バッジの文言を「受取済」と「支払済」で出し分け
             let badgeText = "請求中";
             let badgeColor = "#f39c12"; // デフォルト（未完了）の色
 
             if (isPaid) {
-                badgeColor = "#2ecc71"; // 完了の色
-                if (isMyAction) {
-                    badgeText = "受取済"; // 自分が請求して完了 ＝ 受け取った
-                } else {
-                    badgeText = "支払済"; // 自分が請求されて完了 ＝ 支払った
-                }
+              badgeColor = "#2ecc71"; // 完了の色
+              if (isMyAction) {
+                badgeText = "受取済"; // 自分が請求して完了 ＝ 受け取った
+              } else {
+                badgeText = "支払済"; // 自分が請求されて完了 ＝ 支払った
+              }
             } else {
-                if (!isMyAction) {
-                    badgeText = "未払";   // 請求されている状態
-                }
+              if (!isMyAction) {
+                badgeText = "未払";   // 請求されている状態
+              }
             }
 
             statusBadge = (
@@ -232,8 +232,8 @@ const TransactionHistory = ({ loginUser }) => {
           }
 
           return (
-            <div 
-              key={item.id + (item.type || 'req')} 
+            <div
+              key={item.id + (item.type || 'req')}
               onClick={() => openDetail(item)}
               style={{ display: 'flex', alignItems: 'center', padding: '15px 0', borderBottom: '1px solid #f5f5f5', cursor: 'pointer' }}
             >
@@ -258,7 +258,7 @@ const TransactionHistory = ({ loginUser }) => {
                 </div>
                 <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
                   {new Date(item.createdAt || item.date).toLocaleString()}
-                  <div style={{fontSize: '10px', color: '#ccc'}}>{item.message}</div>
+                  <div style={{ fontSize: '10px', color: '#ccc' }}>{item.message}</div>
                 </div>
               </div>
 

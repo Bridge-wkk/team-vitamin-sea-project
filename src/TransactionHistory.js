@@ -43,20 +43,32 @@ const TransactionHistory = ({ loginUser }) => {
     });
   }, [loginUser]);
 
+  // フィルタリングロジック
   const filteredHistory = useMemo(() => {
     return history.filter(item => {
       const isTransferType = item.type === "transfer" || item.type === "request_payment";
+      
+      // 自分主体のアクションか（送金した/請求した）
       const isMyAction = item.senderId === loginUser.id || item.requesterId === loginUser.id;
-      const isReceived = (!isTransferType && item.status === "paid") || (isTransferType && !isMyAction);
 
+      // ★受取済（入金）判定： 「請求の支払いを受けた」 または 「送金を受け取った」
+      const isReceived = (!isTransferType && item.status === "paid" && isMyAction) || (isTransferType && !isMyAction);
+
+      // ステータスフィルター
       if (filterStatus === "paid") {
+        // 「受取済」タブ: 入金があったもの（支払ったものは除外）
         if (!isReceived) return false;
       } else if (filterStatus === "unpaid") {
+        // 未払い（請求中）
         if (isTransferType || item.status !== "unpaid") return false;
       } else if (filterStatus === "transfer") {
-        if (!isTransferType || !isMyAction) return false;
+        // 送金（出金）: 送金タイプかつ自分が送ったもの + 請求の支払い
+        // 「送金」タブの意味合いによりますが、ここでは「自分のお金が出ていったもの」と定義する場合
+        const isPayment = (isTransferType && isMyAction) || (!isTransferType && item.status === "paid" && !isMyAction);
+        if (!isPayment) return false;
       }
 
+      // 期間フィルター
       if (filterPeriod === "1month") {
         const oneMonthAgo = new Date();
         oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
@@ -90,9 +102,9 @@ const TransactionHistory = ({ loginUser }) => {
         <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "5px", marginBottom: "20px" }}>
           {[
             { id: "all", label: "すべて" },
-            { id: "unpaid", label: "請求中" },
+            { id: "unpaid", label: "請求中(未払)" },
             { id: "paid", label: "受取済" },
-            { id: "transfer", label: "送金" },
+            { id: "transfer", label: "送金(出金)" },
           ].map((btn) => (
             <button
               key={btn.id}
@@ -152,14 +164,17 @@ const TransactionHistory = ({ loginUser }) => {
 
           if (isTransferType) {
             if (isMyAction) {
+              // 自分が送金した
               titleText = `To: ${targetUser?.name || '不明'}`;
               amountColor = "#D11C1C";
               amountPrefix = "-";
               statusBadge = <span style={{ fontSize: '11px', color: '#28a745' }}>● 送金完了</span>;
             } else {
+              // 自分が送金を受け取った
               titleText = `From: ${targetUser?.name || '不明'}`;
               amountColor = "#28a745";
               amountPrefix = "+";
+              // ★修正: 送金受取も「受取済」バッジ
               statusBadge = (
                 <span style={{
                   fontSize: '11px', fontWeight: 'bold',
@@ -172,6 +187,7 @@ const TransactionHistory = ({ loginUser }) => {
               );
             }
           } else {
+            // 請求タイプ
             if (isMyAction) {
               titleText = `To: ${targetUser?.name || '不明'} (請求)`;
               if (isPaid) {
@@ -181,19 +197,36 @@ const TransactionHistory = ({ loginUser }) => {
             } else {
               titleText = `From: ${targetUser?.name || '不明'} (請求)`;
               if (isPaid) {
-                amountColor = "#D11C1C"; // 自分が払ったなら赤
+                amountColor = "#D11C1C"; // 赤
                 amountPrefix = "-";
               }
             }
             
+            // ★修正: バッジの文言を「受取済」と「支払済」で出し分け
+            let badgeText = "請求中";
+            let badgeColor = "#f39c12"; // デフォルト（未完了）の色
+
+            if (isPaid) {
+                badgeColor = "#2ecc71"; // 完了の色
+                if (isMyAction) {
+                    badgeText = "受取済"; // 自分が請求して完了 ＝ 受け取った
+                } else {
+                    badgeText = "支払済"; // 自分が請求されて完了 ＝ 支払った
+                }
+            } else {
+                if (!isMyAction) {
+                    badgeText = "未払";   // 請求されている状態
+                }
+            }
+
             statusBadge = (
               <span style={{
                 fontSize: '11px', fontWeight: 'bold',
-                color: isPaid ? '#2ecc71' : '#f39c12',
-                border: `1px solid ${isPaid ? '#2ecc71' : '#f39c12'}`,
+                color: badgeColor,
+                border: `1px solid ${badgeColor}`,
                 padding: '2px 6px', borderRadius: '4px'
               }}>
-                {isPaid ? "受取済" : "請求中"}
+                {badgeText}
               </span>
             );
           }
@@ -230,7 +263,7 @@ const TransactionHistory = ({ loginUser }) => {
               </div>
 
               <div style={{ textAlign: 'right' }}>
-                {/* ★修正: ¥マークを削除 */}
+                {/* ★修正: ¥マーク削除 */}
                 <div style={{ fontWeight: 'bold', fontSize: '16px', color: amountColor }}>
                   {amountPrefix}{Number(item.amount).toLocaleString()}
                 </div>

@@ -11,7 +11,7 @@ const CreateRequest = ({ loginUser }) => {
   const [amount, setAmount] = useState("");
   const [amountError, setAmountError] = useState("");
   const [message, setMessage] = useState("");
-  // ★ 追加：確認画面の状態管理
+  // ★ 請求金額確認画面の状態管理
   const [isConfirming, setIsConfirming] = useState(false);
 
   const balance = useMemo(

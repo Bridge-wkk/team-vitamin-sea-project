@@ -116,6 +116,7 @@ const BalanceHistory = ({ loginUser }) => {
   }, [graphData]); 
 
 
+  // ★修正: ツールチップに変動額を追加
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -129,11 +130,31 @@ const BalanceHistory = ({ loginUser }) => {
           minWidth: "160px", 
           whiteSpace: "nowrap"
         }}>
-          <p style={{ margin: "0 0 4px", fontSize: "11px", color: "#888" }}>{data.dateLabel}</p>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "12px" }}>
+          {/* 日付 */}
+          <p style={{ margin: "0 0 6px", fontSize: "11px", color: "#888", borderBottom: "1px solid #eee", paddingBottom: "4px" }}>
+            {data.dateLabel}
+          </p>
+          
+          {/* 残高 */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "12px", marginBottom: "4px" }}>
             <span style={{ fontSize: "12px", fontWeight: "bold", color: "#333" }}>残高</span>
             <span>
               <span style={{ fontSize: "15px", fontWeight: "bold", color: "#333" }}>{data.balance.toLocaleString()}</span>
+              <span style={{ fontSize: "11px", color: "#888", marginLeft: "2px" }}>円</span>
+            </span>
+          </div>
+
+          {/* ★追加：変動額 */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "12px" }}>
+            <span style={{ fontSize: "12px", fontWeight: "bold", color: "#666" }}>変動</span>
+            <span>
+              <span style={{ 
+                fontSize: "14px", 
+                fontWeight: "bold", 
+                color: data.totalDiff >= 0 ? "#28a745" : "#D11C1C" // プラスなら緑、マイナスなら赤
+              }}>
+                {data.totalDiff > 0 ? "+" : ""}{data.totalDiff.toLocaleString()}
+              </span>
               <span style={{ fontSize: "11px", color: "#888", marginLeft: "2px" }}>円</span>
             </span>
           </div>
@@ -143,8 +164,7 @@ const BalanceHistory = ({ loginUser }) => {
     return null;
   };
 
-  // グラフ幅の調整（全画面表示用に少しゆとりを持たせる）
-  const chartWidth = Math.max(window.innerWidth - 60, graphData.length * 60);
+  const chartWidth = Math.max(window.innerWidth - 80, graphData.length * 60);
 
   return (
     <div style={{ backgroundColor: "#f9f9f9", minHeight: "100vh", fontFamily: "sans-serif", paddingBottom: "40px" }}>
@@ -171,7 +191,7 @@ const BalanceHistory = ({ loginUser }) => {
         <div style={{ width: "60px" }}></div>
       </div>
 
-      <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}> {/* PCで見やすいように最大幅を設定 */}
+      <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
         
         {/* 現在の残高 */}
         <div style={{ textAlign: "center", marginBottom: "25px", marginTop: "10px" }}>
@@ -219,55 +239,81 @@ const BalanceHistory = ({ loginUser }) => {
             </div>
         )}
 
-        {/* グラフエリア */}
+        {/* グラフエリア（分割レイアウト） */}
         <div 
-          ref={scrollContainerRef}
           style={{ 
             backgroundColor: "#fff", 
             borderRadius: "16px", 
             height: "280px", 
             marginBottom: "30px", 
             boxShadow: "0 4px 20px rgba(0,0,0,0.03)", 
-            overflowX: "auto", 
-            whiteSpace: "nowrap",
-            padding: "20px 10px 10px 0"
+            padding: "20px 0 10px 0",
+            display: "flex", 
+            overflow: "hidden"
           }}
         >
           {graphData.length > 0 ? (
-            <div style={{ width: `${chartWidth}px`, height: "100%" }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={graphData} margin={{ top: 10, right: 30, bottom: 5, left: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="dateLabel" 
-                    tick={{ fontSize: 10, fill: '#aaa' }} 
-                    axisLine={false} 
-                    tickLine={false} 
-                    interval={0}
-                    dy={10}
-                  />
-                  <YAxis 
-                    width={50} 
-                    tick={{ fontSize: 10, fill: '#aaa' }} 
-                    axisLine={false} 
-                    tickLine={false} 
-                    domain={['auto', 'auto']} 
-                    tickFormatter={(val) => `${(val/10000).toFixed(0)}万`} 
-                  />
-                  <Tooltip 
-                    content={<CustomTooltip />} 
-                    cursor={{ stroke: '#ddd', strokeWidth: 1, strokeDasharray: '4 4' }} 
-                    position={{ y: -40 }} 
-                  />
-                  <Line 
-                    type="monotone" dataKey="balance" stroke="#007bff" strokeWidth={2.5} dot={{ r: 3, fill: "#fff", stroke: "#007bff", strokeWidth: 2 }} 
-                    activeDot={{ r: 6, fill: "#007bff", stroke: "#fff", strokeWidth: 3 }} animationDuration={500} 
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            <>
+              {/* ① 左側：固定Y軸エリア */}
+              <div style={{ 
+                width: "60px", 
+                height: "100%", 
+                flexShrink: 0, 
+                borderRight: "1px solid #f9f9f9", 
+                zIndex: 2, 
+                backgroundColor: "#fff" 
+              }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={graphData} margin={{ top: 20, right: 0, bottom: 20, left: 0 }}>
+                    <YAxis 
+                      width={60} 
+                      tick={{ fontSize: 10, fill: '#aaa' }} 
+                      axisLine={false} 
+                      tickLine={false} 
+                      domain={['auto', 'auto']} 
+                      tickFormatter={(val) => val.toLocaleString()} 
+                    />
+                    <Line type="monotone" dataKey="balance" stroke="none" dot={false} /> 
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* ② 右側：スクロールするグラフ本体 */}
+              <div 
+                ref={scrollContainerRef}
+                style={{ flex: 1, overflowX: "auto", overflowY: "hidden" }}
+              >
+                <div style={{ width: `${chartWidth}px`, height: "100%" }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={graphData} margin={{ top: 20, right: 30, bottom: 20, left: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis 
+                        dataKey="dateLabel" 
+                        tick={{ fontSize: 10, fill: '#aaa' }} 
+                        axisLine={false} 
+                        tickLine={false} 
+                        interval={0}
+                        dy={10}
+                      />
+                      <YAxis 
+                        hide 
+                        domain={['auto', 'auto']} 
+                      />
+                      <Tooltip 
+                        content={<CustomTooltip />} 
+                        cursor={{ stroke: '#ddd', strokeWidth: 1, strokeDasharray: '4 4' }} 
+                      />
+                      <Line 
+                        type="monotone" dataKey="balance" stroke="#007bff" strokeWidth={2.5} dot={{ r: 3, fill: "#fff", stroke: "#007bff", strokeWidth: 2 }} 
+                        activeDot={{ r: 6, fill: "#007bff", stroke: "#fff", strokeWidth: 3 }} animationDuration={500} 
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </>
           ) : (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: '#ccc', fontSize: '13px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', width: '100%', color: '#ccc', fontSize: '13px' }}>
               データがありません
             </div>
           )}

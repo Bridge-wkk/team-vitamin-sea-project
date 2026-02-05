@@ -12,7 +12,7 @@
       "id": "2",
       "name": "サンプル 氏名B",
       "accountNumber": "2222222",
-      "balance": 45435,
+      "balance": 46423,
       "password": "2",
       "icon": "/images/human2.png"
     },
@@ -59,7 +59,9 @@
       "amount": 123,
       "message": "abc",
       "createdAt": "2026/2/4 14:44:49",
-      "status": "unpaid"
+      "status": "paid",
+      "payerId": "2",
+      "paidAt": "2026/2/5 13:13:41"
     },
     {
       "id": "7773",
@@ -168,6 +170,17 @@
       "amount": 10,
       "message": "おねがいします",
       "createdAt": "2026/2/5 10:11:39",
+      "status": "unpaid"
+    },
+    {
+      "id": "7efb",
+      "requesterId": "1",
+      "requesterName": "サンプル 氏名A",
+      "receiverId": "2",
+      "receiverName": "サンプル 氏名B",
+      "amount": 123,
+      "message": "あa",
+      "createdAt": "2026/2/5 13:14:21",
       "status": "unpaid"
     }
   ],
@@ -422,6 +435,19 @@
       "message": "aaa",
       "replyMessage": "",
       "date": "2026/2/5 13:10:44",
+      "type": "request_payment"
+    },
+    {
+      "id": "ec96",
+      "senderId": "2",
+      "senderName": "サンプル 氏名B",
+      "receiverId": "1",
+      "receiverName": "サンプル 氏名A",
+      "receiverIcon": "/images/human1.png",
+      "amount": 123,
+      "message": "abc",
+      "replyMessage": "",
+      "date": "2026/2/5 13:13:41",
       "type": "request_payment"
     }
   ],

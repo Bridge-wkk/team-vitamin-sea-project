@@ -27,7 +27,7 @@ const TransactionHistory = ({ loginUser }) => {
       setFriendsMap(map);
 
       const myRequests = requestsData.filter(req =>
-        req.requesterId === loginUser.id || req.receiverId === loginUser.id
+        req.requesterId === loginUser.id || (req.receiverId === loginUser.id && req.status === "paid")
       );
 
       const mySends = sendsData.filter(send =>

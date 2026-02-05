@@ -31,7 +31,7 @@ const TransactionHistory = ({ loginUser }) => {
       );
 
       const mySends = sendsData.filter(send => 
-        send.senderId === loginUser.id || send.receiverId === loginUser.id
+        (send.senderId === loginUser.id || send.receiverId === loginUser.id) && send.type === "transfer"
       );
       
       const combined = [...myRequests, ...mySends].map(item => ({

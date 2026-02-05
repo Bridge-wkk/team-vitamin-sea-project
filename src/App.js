@@ -119,7 +119,7 @@ export default function App({ loginUser }) {
         {/* メニュー */}
         <button onClick={() => navigate("/transactionhistory")} className="actionButton" style={{ marginTop: '10px', backgroundColor: '#fff', border: '1px solid #ddd' }}>
           <img className="actionIcon" src="/images/rireki.png" alt="" />
-          <span className="actionText" style={{ color: '#333' }}>請求・送金状況を確認する</span>
+          <span className="actionText" style={{ color: '#333' }}>請求・入出金履歴を確認する</span>
         </button>
 
         <button onClick={() => navigate("/recipientlist")} className="actionButton">

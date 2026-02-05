@@ -102,9 +102,9 @@ const TransactionHistory = ({ loginUser }) => {
         <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "5px", marginBottom: "20px" }}>
           {[
             { id: "all", label: "すべて" },
-            { id: "unpaid", label: "請求中(未払)" },
+            { id: "unpaid", label: "請求中" },
             { id: "paid", label: "受取済" },
-            { id: "transfer", label: "送金(出金)" },
+            { id: "transfer", label: "出金" },
           ].map((btn) => (
             <button
               key={btn.id}
